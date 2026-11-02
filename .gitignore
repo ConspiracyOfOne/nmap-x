@@ -1,0 +1,29 @@
+# Test runner — can be regenerated or run locally only
+tests.html
+
+# Documentation / tracking files (kept locally for project management)
+GLOSSARY.md
+IMPLEMENTATION_CHECKLIST.md
+
+# Obsidian / markdown cache files (if any)
+*.aux
+*.log
+*.out
+
+# Local environment / config (none currently, but keep this pattern)
+.env
+*.env.local
+
+# Binary / generated artifacts
+*.pdf
+*.min.js
+
+# Image optimization / temp files
+Thumbs.db
+Desktop.ini
+
+# SVGo cache (if using SVGO)
+.svgo.json
+
+# OpenCode session data (local only)
+.opencode/

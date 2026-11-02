@@ -1,0 +1,3268 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>Nmap-X</title>
+<link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWUY0k2dJHENziRZrtjcQHJQZAaITWnWjgxRHXDXiN6Q&s=10" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    /* Nmap-X modern slate theme */
+    :root{
+      --bg:#0f172a;          /* slate-900 */
+      --layer:#1e293b;       /* slate-800 */
+      --layer-2:#334155;     /* slate-700 */
+      --text-01:#f8fafc;     /* slate-50 */
+      --text-02:#94a3b8;     /* slate-400 */
+      --interactive:#3b82f6; /* blue-500 */
+      --interactive-hover:#2563eb; /* blue-600 */
+      --accent:#f1c21b;      /* amber-400 */
+      --border:#475569;      /* slate-600 */
+      font-family: 'Open Sans', sans-serif;
+      font-size:14px;
+    }
+
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text-01)}
+    .container{max-width:1300px;margin:18px auto; padding-top: 1em; padding-bottom: 24px;}
+
+    /* Banner — clean/minimal: subtle radius, restrained color, more whitespace */
+    .app-banner{position:relative;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 20px;background:var(--layer);border:1px solid var(--border);border-radius:8px}
+    .banner-brand{display:flex;flex-direction:column;gap:4px}
+    .banner-brand h1{margin:0;font-size:20px;font-weight:600;letter-spacing:-0.02em}
+    .brand{display:flex;flex-direction:column;gap:4px;text-align:center;align-items:center}
+    h1{margin:0;font-size:18px}
+    .subtitle{color:var(--text-02);font-size:12.5px}
+
+    .controls{display:flex;gap:8px;align-items:center}
+    .bx--btn{border-radius:6px;transition:background 150ms ease;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+    input[type=file]{display:none}
+    label.file-btn{cursor:pointer;transition:background 150ms ease}
+
+    /* Empty state upload button — primary action, clean/minimal */
+    .btn-upload{
+      background:var(--interactive);
+      color:#ffffff;
+      border:none;
+      border-radius:6px;
+      padding:10px 20px;
+      cursor:pointer;
+      transition:background 150ms ease,opacity 150ms ease;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      font-size:14px;
+      font-weight:600;
+      line-height:1;
+    }
+    .btn-upload:hover{
+      background:var(--interactive-hover);
+      opacity:1;
+    }
+    .btn-upload:focus-visible{
+      outline:2px solid var(--interactive);
+      outline-offset:2px;
+    }
+    .btn-upload svg{width:20px;height:20px;flex-shrink:0}
+
+    /* Layout: stats row on top, 2-column summary section, then full-width IP inventory */
+    .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px;padding-bottom:100px}
+    .summary-row{display:grid;grid-template-columns:repeat(4, 1fr);gap:16px}
+    .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+    .panel{background:var(--layer);border:1px solid var(--border);padding:16px;border-radius:10px}
+    .panel h3{margin:0 0 12px 0;font-size:15px;font-weight:600}
+
+    /* Stat cards — clean/minimal typography */
+    .stat-label{color:var(--text-02);font-size:12px;font-weight:600;letter-spacing:-0.01em}
+    .stat-value{font-size:28px;font-weight:700;color:var(--text-01);margin-top:8px;letter-spacing:-0.03em}
+
+    /* lists */
+    .list-group{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow:auto;padding-right:6px}
+    .list-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid transparent;background:transparent;cursor:pointer;border-radius:8px}
+    .list-item:hover{background:var(--layer-2)}
+    .list-item.active{outline:2px solid rgba(15,98,254,0.14);background:var(--layer-2)}
+
+    .port-badge{background:var(--interactive);color:white;padding:4px 8px;font-weight:700;border-radius:4px}
+    .svc-pill{background:rgba(15,98,254,0.08);color:var(--interactive);padding:4px 8px;border-radius:4px;font-size:13px}
+
+    /* IP inventory (accordion) — clean/minimal */
+    #ipAccordion{max-height:78vh;overflow:auto}
+    .accordion-item{border-bottom:1px solid var(--border);background:transparent}
+    .accordion-header{background:transparent}
+    .accordion-button{background:transparent;border:none;color:var(--text-01);text-align:left;width:100%;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-radius:6px}
+    .accordion-button:hover{background:var(--layer-2)}
+    .accordion-button[aria-expanded="true"]{background:var(--layer-2)}
+    /* Accordion body: animate height for smooth open/close */
+    .accordion-body{background:var(--layer-2);padding:0 14px;color:var(--text-02);overflow:hidden;max-height:0;transition:max-height 400ms cubic-bezier(0.4, 0, 0.2, 1), padding 400ms cubic-bezier(0.4, 0, 0.2, 1);border-radius:0 0 6px 6px}
+    .accordion-body .body-inner{padding:14px 0}
+
+  .data-table{width:100%;border-collapse:collapse;table-layout:fixed;max-width:100%}
+  /* Left align everything in the table and use muted header color */
+  .data-table th,.data-table td{padding:10px 8px;border-bottom:1px dashed rgba(255,255,255,0.03);font-size:13px;color:var(--text-02);text-align:left;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .data-table thead th{color:var(--text-02);background:var(--layer);font-weight:600;font-size:11.5px;position:sticky;top:0;z-index:11;border-bottom:2px solid var(--border);box-shadow:0 2px 4px rgba(0,0,0,0.15)}
+  .data-table tbody tr.port-row:hover{background:rgba(255,255,255,0.04)}
+  [data-theme="light"] .data-table tbody tr.port-row:hover{background:rgba(0,0,0,0.03)}
+  .data-table tbody tr.port-detail:hover{background:transparent}
+  .data-table td .port-badge{margin-right:10px;display:inline-block}
+  /* Fixed column widths for consistency */
+  .data-table th:nth-child(1), .data-table td:nth-child(1){width:12%}
+  .data-table th:nth-child(2), .data-table td:nth-child(2){width:12%}
+  .data-table th:nth-child(3), .data-table td:nth-child(3){width:20%}
+  .data-table th:nth-child(4), .data-table td:nth-child(4){width:18%}
+  .data-table th:nth-child(5), .data-table td:nth-child(5){width:15%}
+
+  /* Accordion actions (right side) */
+  .accordion-header{display:flex;align-items:center;justify-content:space-between;padding:0}
+  .accordion-left{display:flex;align-items:center;gap:12px;flex:1}
+  .accordion-right{display:flex;align-items:center;gap:8px}
+  
+  /* Make Copy and View buttons EXACTLY the same size, no rounded edges */
+  .accordion-actions .btn-ghost,
+  .accordion-actions .bx--btn{
+    padding:8px 12px;
+    font-size:13px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--text-01);
+    min-width:90px;
+    text-align:center;
+    cursor:pointer;
+    transition:background 120ms ease;
+  }
+  .accordion-actions .btn-ghost:hover,
+  .accordion-actions .bx--btn:hover{
+    background:var(--layer-2);
+  }
+
+  /* Slightly more breathing room between ports entries in lists */
+  .list-item{padding:10px}
+
+  /* Custom sleeker scrollbar - no rounded edges */
+  /* WebKit */
+  ::-webkit-scrollbar{height:10px;width:10px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255, 255, 255, 0.03));border-radius:6px;border:2px solid rgba(0,0,0,0)}
+  ::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,rgba(0, 60, 255, 0.09),rgba(0, 4, 255, 0.04))}
+  /* Firefox */
+  *{scrollbar-width:thin;scrollbar-color: rgba(255, 255, 255, 0.06) transparent}
+
+  /* Light mode scrollbar */
+  [data-theme="light"] ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(0,0,0,0.2),rgba(0,0,0,0.1));border:2px solid rgba(0,0,0,0)}
+  [data-theme="light"] ::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,rgba(0,0,0,0.3),rgba(0,0,0,0.15))}
+  [data-theme="light"] *{scrollbar-color: rgba(0,0,0,0.2) transparent}
+
+    /* Controls and search */
+    .search{margin-top:8px}
+    .search input{width:100%;padding:8px;border:1px solid var(--border);background:var(--layer-2);color:var(--text-01);border-radius:6px}
+    .search input:focus{outline:2px solid rgba(15,98,254,0.12);border-radius:6px}
+
+    /* Chart */
+    .chart-card{background:var(--layer-2);border:1px solid var(--border);padding:10px;margin-top:10px;}
+
+    /* Buttons */
+    .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-01);padding:6px 10px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+    .btn-ghost:hover{background:var(--layer-2)}
+
+    .github-link{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;border:1px solid var(--border);background:transparent;color:var(--text-01);cursor:pointer;text-decoration:none;border-radius:6px;min-width:40px;height:36px;transition:background 150ms ease,border-color 150ms ease}
+    .github-link svg{width:18px;height:18px;fill:currentColor}
+    .github-link:hover{background:var(--layer-2)}
+
+    /* Overflow menu for small screens */
+    .overflow-menu{position:relative;display:none}
+    .overflow-toggle{display:flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:1px solid var(--border);background:transparent;color:var(--text-01);cursor:pointer;border-radius:6px;transition:background 150ms ease,border-color 150ms ease}
+    .overflow-toggle:hover{background:var(--layer-2)}
+    .overflow-toggle svg{width:20px;height:20px;fill:currentColor}
+    .overflow-dropdown{display:none;position:absolute;top:calc(100% + 4px);right:0;background:var(--layer);border:1px solid var(--border);padding:8px;min-width:180px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5)}
+    .overflow-dropdown.active{display:flex;flex-direction:column;gap:6px}
+    .overflow-dropdown .bx--btn, .overflow-dropdown .github-link{width:100%;justify-content:flex-start}
+
+    /* Table scroll indicator */
+    .table-wrapper{position:relative;overflow:hidden}
+    .table-wrapper::after{content:'';position:absolute;top:0;right:0;bottom:0;width:40px;background:linear-gradient(90deg,transparent,var(--layer-2));pointer-events:none;opacity:0;transition:opacity 200ms ease}
+    .table-wrapper.has-scroll::after{opacity:1}
+
+    /* Small utilities */
+    .small-muted{color:var(--text-02);font-size:13px}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace}
+
+    /* Port detail blocks — distinct background from port row, visible in both themes */
+    .port-details{padding:10px 12px;font-size:12px;line-height:1.6;color:var(--text-02);background:rgba(255,255,255,0.05);border-top:1px solid rgba(255,255,255,0.08);border-radius:0 0 6px 6px;margin-top:6px}
+    [data-theme="light"] .port-details{background:rgba(0,0,0,0.03);border-top:1px solid rgba(0,0,0,0.06)}
+    .port-details .detail-line{margin:2px 0;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+    [data-theme="light"] .port-details .detail-line{border-bottom:1px solid rgba(0,0,0,0.03)}
+    .port-details .detail-line:last-child{border-bottom:none}
+    .port-details .detail-label{font-weight:600;color:var(--text-01)}
+    .port-details .detail-script{margin-top:10px}
+    .port-details .detail-script-output{margin:4px 0 0;white-space:pre-wrap;font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;font-size:11px;color:var(--text-02);background:var(--layer);padding:6px 8px;border-left:2px solid var(--border)}
+
+    /* Action toolbar (below the banner) */
+    .action-toolbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      justify-content:center;
+      background:var(--layer);
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:10px 14px;
+      margin-top:12px;
+    }
+    .dock-btn{
+      background:transparent;
+      border:1px solid transparent;
+      color:var(--text-01);
+      padding:8px 12px;
+      border-radius:6px;
+      cursor:pointer;
+      transition:background 150ms ease,border-color 150ms ease;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      min-width:44px;
+      min-height:40px;
+      text-decoration:none;
+      font-size:13px;
+    }
+    .dock-btn:hover{
+      background:var(--layer-2);
+      border-color:var(--border);
+    }
+    .dock-btn:active{background:var(--interactive);color:#ffffff}
+    .dock-btn svg{width:18px;height:18px;flex-shrink:0}
+    .dock-separator{width:1px;height:28px;background:var(--border);margin:0 6px}
+
+    /* Export Modal */
+    .export-modal{
+      display:none;
+      position:fixed;
+      top:0;
+      left:0;
+      right:0;
+      bottom:0;
+      background:rgba(0,0,0,0.6);
+      z-index:3000;
+      align-items:center;
+      justify-content:center;
+    }
+    .export-modal.active{display:flex}
+    .export-modal-content{
+      background:var(--layer);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:24px;
+      max-width:400px;
+      width:90%;
+    }
+  .export-modal-content h3{margin:0 0 16px 0;font-size:16px;font-weight:600}
+  /* Clear Data modal text color per theme */
+  html[data-theme="light"] #clearConfirmModal .export-modal-content h3,
+  html[data-theme="light"] #clearConfirmModal .export-modal-content p{color:var(--text-01)}
+  html:not([data-theme="light"]) #clearConfirmModal .export-modal-content h3,
+  html:not([data-theme="light"]) #clearConfirmModal .export-modal-content p{color:#ffffff}
+    .export-options{display:flex;flex-direction:column;gap:8px}
+    .export-option-btn{
+      width:100%;
+      padding:12px 16px;
+      background:var(--layer-2);
+      border:1px solid var(--border);
+      border-radius:8px;
+      color:var(--text-01);
+      cursor:pointer;
+      transition:background 150ms ease,border-color 150ms ease;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-size:14px;
+    }
+  .export-option-btn:hover{background:var(--interactive);color:#ffffff;border-color:var(--interactive)}
+  /* Ensure destructive confirm stays red and readable, not overridden by generic hover */
+  #confirmClearBtn{background:var(--support-error) !important;color:#ffffff !important;border-color:var(--support-error) !important}
+  #confirmClearBtn:hover,#confirmClearBtn:focus{background:var(--support-error) !important;color:#ffffff !important;border-color:#ba1b23 !important}
+  /* In LIGHT mode, the Clear Data option must use dark text (not white) */
+  html[data-theme="light"] #confirmClearBtn,
+  html[data-theme="light"] #confirmClearBtn:hover,
+  html[data-theme="light"] #confirmClearBtn:focus{color:var(--text-01) !important}
+  #confirmClearBtn svg{fill:currentColor}
+    .export-option-btn svg{width:20px;height:20px}
+    .export-option-btn:focus-visible{outline:2px solid var(--interactive);outline-offset:2px}
+    @media (prefers-reduced-motion: reduce){
+      .count-up{animation:none}
+    }
+
+  /* Cancel buttons should not switch to white text on light backgrounds */
+  /* Cancel buttons: readable by default and on hover */
+  #cancelClearBtn, #cancelExportBtn{background:var(--layer);color:var(--text-01) !important;border:1px solid var(--border)}
+  #cancelClearBtn svg, #cancelExportBtn svg{fill:currentColor}
+  #cancelClearBtn:hover, #cancelExportBtn:hover{background:var(--layer-2);color:var(--text-01) !important;border-color:var(--interactive)}
+
+    /* Responsive dock - icons only on mobile, icons+text on tablet/desktop */
+    @media (max-width:640px){
+      .dock-btn-text{display:none}
+      .dock-btn{min-width:44px;padding:10px}
+      .dock-mobile-only{display:flex}
+    }
+    @media (min-width:641px){
+      .dock-btn{padding:10px 16px}
+      .dock-mobile-only{display:none}
+    }
+
+    /* Floating GitHub Icon */
+    .floating-github{
+      width:48px;
+      height:48px;
+      background:var(--interactive);
+      color:#ffffff;
+      border:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:background 200ms ease;
+      text-decoration:none;
+    }
+    .floating-github:hover{
+      background:rgba(15,98,254,0.9);
+    }
+    .floating-github svg{
+      width:28px;
+      height:28px;
+      fill:currentColor;
+    }
+
+    /* === NEW ENHANCEMENTS === */
+    
+    /* Loading & Empty States — clean/minimal */
+    .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:72px 24px;text-align:center;min-height:420px}
+    .empty-state-icon{width:64px;height:64px;margin-bottom:24px;opacity:0.45}
+    .empty-state h3{margin:0 0 14px 0;font-size:20px;color:var(--text-01);font-weight:600}
+    .empty-state p{margin:0 0 24px 0;color:var(--text-02);max-width:460px;line-height:1.5}
+    .skeleton{background:var(--layer-2);border-radius:4px;height:16px;animation:none}
+    .loading-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(22,22,22,0.85);display:none;align-items:center;justify-content:center;z-index:10000;backdrop-filter:blur(6px)}
+    .loading-overlay.active{display:flex}
+    .loading-content{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+    .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--interactive);border-radius:50%;animation:spin 0.8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Theme Toggle */
+    .theme-toggle{display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border);background:transparent;color:var(--text-01);cursor:pointer;border-radius:6px;transition:background 150ms ease,border-color 150ms ease}
+    .theme-toggle:hover{background:var(--layer-2)}
+    .theme-toggle svg{width:16px;height:16px;fill:currentColor}
+    
+    /* Light mode variables */
+    [data-theme="light"]{
+      --bg:#f8fafc;          /* slate-50 */
+      --layer:#ffffff;       /* white */
+      --layer-2:#f1f5f9;     /* slate-100 */
+      --text-01:#0f172a;     /* slate-900 */
+      --text-02:#64748b;     /* slate-500 */
+      --interactive:#2563eb; /* blue-600 */
+      --interactive-hover:#1d4ed8; /* blue-700 */
+      --border:#cbd5e1;      /* slate-300 */
+    }
+    
+    /* Light mode specific fixes */
+    [data-theme="light"] .subtitle a,
+    [data-theme="light"] .social-links a{
+      color:#2563eb;
+    }
+    [data-theme="light"] .subtitle a:hover,
+    [data-theme="light"] .social-links a:hover{
+      color:#1d4ed8;
+      text-decoration:underline;
+    }
+    [data-theme="light"] .svc-link{
+      color:#2563eb;
+      font-weight:600;
+    }
+    [data-theme="light"] .svc-pill{
+      background:#2563eb;
+      color:#ffffff;
+    }
+
+    /* Port State Colors */
+    .port-state-open{color:#42be65;font-weight:600}
+    .port-state-filtered{color:#f1c21b;font-weight:600}
+    .port-state-closed{color:#da1e28;font-weight:600}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}
+
+    /* Risk severity */
+    .risk-critical{color:#da1e28;font-weight:700}
+    .risk-high{color:#ff832b;font-weight:600}
+    .risk-medium{color:#f1c21b;font-weight:600}
+    .risk-low{color:#42be65;font-weight:600}
+    .risk-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 6px;font-size:11px;font-weight:700;border-radius:4px;color:#fff}
+    .risk-badge.critical{background:#da1e28}
+    .risk-badge.high{background:#ff832b}
+    .risk-badge.medium{background:#f1c21b;color:#161616}
+    .risk-badge.low{background:#42be65;color:#161616}
+
+    /* Keyboard Shortcuts Modal */
+    .shortcuts-modal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--layer);border:1px solid var(--border);padding:24px;max-width:500px;width:90%;z-index:10001;box-shadow:0 16px 48px rgba(0,0,0,0.7)}
+    .shortcuts-modal.active{display:block}
+    .shortcuts-modal h3{margin:0 0 16px 0}
+    .shortcut-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border)}
+    .shortcut-key{background:var(--layer-2);padding:4px 8px;border:1px solid var(--border);font-family:monospace;font-size:12px}
+
+    /* Tooltips */
+    .tooltip{position:relative;cursor:help}
+    .tooltip::after{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.9);color:white;padding:6px 10px;font-size:12px;white-space:nowrap;border-radius:6px;opacity:0;pointer-events:none;transition:opacity 200ms ease;z-index:1000}
+    .tooltip:hover::after{opacity:1}
+
+    /* Drag & Drop Zone */
+    .drop-zone{border:2px dashed var(--border);padding:40px;text-align:center;cursor:pointer;background:rgba(15,98,254,0.02);border-radius:8px}
+    .drop-zone:hover,.drop-zone.drag-over{border-color:var(--interactive);background:rgba(15,98,254,0.06)}
+    .drop-zone-icon{width:40px;height:40px;margin:0 auto 12px;opacity:0.45}
+
+    /* File Info Banner */
+    .file-info{display:none;gap:18px;align-items:center;font-size:12px;color:var(--text-02);flex-wrap:wrap}
+    .file-info.active{display:flex}
+    .file-info-name{font-weight:600;color:var(--text-01)}
+
+    /* Vulnerability Badge */
+    .vuln-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;background:#da1e28;color:white;font-size:11px;font-weight:700;border-radius:4px}
+    .vuln-badge svg{width:12px;height:12px;fill:currentColor}
+
+    /* Count-up animation */
+    @keyframes countUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .count-up{animation:countUp 0.4s ease-out}
+
+    /* Focus indicators */
+    *:focus-visible{outline:2px solid var(--interactive);outline-offset:2px}
+
+    /* ARIA live region */
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+    /* Responsive */
+    @media (max-width:980px){
+      .container{margin:18px auto;padding-top:1em;max-width:calc(100% - 36px)}
+      .summary-row{grid-template-columns:repeat(2, 1fr)}
+      .summary-grid{grid-template-columns:1fr}
+      .chart-card{margin-top:12px}
+      /* header maintains grid layout but smaller */
+      header{grid-template-columns:40px 1fr 40px;gap:10px;padding:12px}
+      .brand{gap:4px}
+      .logo{width:40px;height:40px}
+      .floating-github{width:40px;height:40px}
+      .floating-github svg{width:24px;height:24px}
+      .controls{margin-top:0;flex-wrap:wrap;justify-content:flex-start;gap:8px;width:100%}
+      .controls .bx--btn, .controls .github-link, .controls .btn-ghost, .controls label.file-btn{padding:6px 10px;min-width:unset;font-size:13px}
+      .overflow-menu{display:none} /* no hamburger on tablet */
+      /* make panels breathe less on smaller screens */
+      .panel{padding:10px}
+      h1{font-size:16px}
+      .data-table th,.data-table td{padding:8px 6px;font-size:12px}
+      .accordion-actions .btn-ghost, .accordion-actions .bx--btn{min-width:70px;padding:6px 8px}
+      /* allow table to scroll horizontally on narrow screens */
+      .data-table{display:block;overflow:auto;white-space:nowrap}
+      .modal-content{width:95vw}
+    }
+
+    @media (max-width:640px){
+      .container{margin:12px auto;padding-top:1em;max-width:calc(100% - 24px)}
+      /* Mobile header - smaller 3-column grid */
+      .summary-row{grid-template-columns:repeat(2, 1fr)}
+      header{grid-template-columns:36px 1fr 36px;gap:8px;padding:10px}
+      .brand{gap:2px}
+      .subtitle{font-size:11px}
+      .logo{width:36px;height:36px;font-size:16px}
+      .floating-github{width:36px;height:36px}
+      .floating-github svg{width:20px;height:20px}
+      h1{font-size:15px}
+      .panel{padding:8px;overflow-x:auto}
+      .list-item{padding:8px}
+      .data-table{display:block;overflow-x:auto;white-space:nowrap;min-width:600px}
+      .data-table thead th{font-size:11px}
+      .modal-content{width:100vw;max-height:100vh;margin:0;height:100vh}
+      .modal-body{padding:12px}
+      .modal-body pre{font-size:12px}
+      .accordion-button{padding:10px}
+      .accordion-actions .btn-ghost, .accordion-actions .bx--btn{min-width:64px;padding:6px 6px;font-size:12px}
+      /* Mobile search area - make more compact */
+      #searchInput{font-size:12px;padding:6px !important}
+      #copyIPs{font-size:12px;padding:6px 8px !important;white-space:nowrap}
+    }
+
+/* === Modal for View Raw === */
+.modal-overlay{
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  background:rgba(0,0,0,0.8);
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+  backdrop-filter:blur(8px);
+}
+.modal-overlay.active{display:flex}
+.modal-content{
+  background:var(--layer);
+  border:1px solid var(--border);
+  max-width:90vw;
+  max-height:90vh;
+  width:950px;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,0,0,0.45);
+  border-radius:12px;
+  overflow:hidden;
+}
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 24px;
+  border-bottom:1px solid var(--border);
+  background:var(--layer-2);
+}
+.modal-header h2{margin:0;font-size:17px;font-weight:600;color:var(--text-01)}
+.modal-close{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--text-01);
+  padding:6px 12px;
+  cursor:pointer;
+  border-radius:6px;
+  font-size:13px;
+}
+.modal-close:hover{background:var(--interactive);color:#ffffff;border-color:var(--interactive)}
+.modal-body{
+  flex:1;
+  overflow:auto;
+  padding:24px;
+  background:var(--bg);
+}
+.modal-body pre{
+  margin:0;
+  padding:18px;
+  background:var(--layer-2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:auto;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;
+  font-size:12.5px;
+  line-height:1.6;
+  color:var(--text-01);
+}
+.modal-body pre code{
+  display:block;
+  white-space:pre;
+}
+#modalXml.formatted-text code{white-space:pre-wrap}
+/* Simple syntax highlighting for XML */
+.xml-tag{color:#78a9ff}
+.xml-attr{color:#42be65}
+.xml-value{color:#ee5396}
+.xml-comment{color:#8d8d8d;font-style:italic}
+
+a {
+    text-decoration: none;
+}
+html:not([data-theme="light"]) a { color: #ffffff; }
+html[data-theme="light"] a { color: var(--text-01); }
+
+    /* Print */
+    @media print {
+      .action-toolbar, .floating-github, .overflow-menu, .modal-overlay, .export-modal, .shortcuts-modal, .loading-overlay { display: none !important; }
+      body { background: #fff; color: #000; }
+      .container { max-width: 100%; margin: 0; }
+      .panel { border: 1px solid #ccc; break-inside: avoid; }
+      a { color: #000; text-decoration: underline; }
+    }
+
+  </style>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="78d168ab-1201-4551-9d40-92056d995e41"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="app-banner">
+      <!-- Banner: title, author, file info -->
+      <div class="banner-brand">
+        <h1>Nmap-X</h1>
+        <div class="subtitle">An Nmap XML Parser and Visualizer</div>
+        <div class="subtitle" style="font-size:11px;opacity:0.8">Author: ConspiracyOfOne</div>
+      </div>
+
+      <!-- File Info -->
+      <div id="fileInfo" class="file-info">
+        <span class="file-info-name" id="fileName"></span>
+        <span id="scanDate"></span>
+      </div>
+
+      <div class="controls" role="region" aria-label="controls" style="position:absolute;left:-9999px;opacity:0">
+        <!-- Hidden buttons for dock to trigger -->
+        <button id="loadExample"></button>
+        <button id="exportJson"></button>
+        <button id="exportCsv"></button>
+        <button id="exportPdf"></button>
+        <button id="clearData"></button>
+        
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+          <svg viewBox="0 0 24 24" class="theme-icon-dark"><path d="M9 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm6.219 1.781a1 1 0 011.414 0l.707.707a1 1 0 11-1.414 1.414l-.707-.707a1 1 0 010-1.414zM12 7a5 5 0 100 10 5 5 0 000-10zm-7 4a1 1 0 100 2H3a1 1 0 100-2h2zm13 0a1 1 0 110 2h-2a1 1 0 110-2h2zM7.05 16.95a1 1 0 011.414 0l.707.707a1 1 0 11-1.414 1.414l-.707-.707a1 1 0 010-1.414zm9.9 0a1 1 0 011.414 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707zM9 19a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z"/></svg>
+          <svg viewBox="0 0 24 24" class="theme-icon-light" style="display:none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+        <button id="keyboardHelp" class="btn-ghost tooltip" data-tooltip="Keyboard shortcuts" aria-label="Keyboard shortcuts">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 13A6 6 0 118 2a6 6 0 010 12zm-.5-9h1v5h-1V5zm0 6h1v1h-1v-1z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Action toolbar (below banner) -->
+    <div class="action-toolbar">
+      <button class="dock-btn" id="dockLoadExample" title="Load Example">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="20" height="20"><path d="M22 22H2"/><path d="M21 22V14.5C21 13.6716 20.3284 13 19.5 13H16.5C15.6716 13 15 13.6716 15 14.5V22"/><path d="M15 22V5C15 3.58579 15 2.87868 14.5607 2.43934C14.1213 2 13.4142 2 12 2C10.5858 2 9.87868 2 9.43934 2.43934C9 2.87868 9 3.58579 9 5V22"/><path d="M9 22V9.5C9 8.67157 8.32843 8 7.5 8H4.5C3.67157 8 3 8.67157 3 9.5V22"/></svg>
+        <span class="dock-btn-text">Load Example</span>
+      </button>
+      
+      <button class="dock-btn" id="dockClearData" title="Clear Data" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="20" height="20"><path d="M20.5001 6H3.5"/><path d="M18.8332 8.5L18.3732 15.3991C18.1962 18.054 18.1077 19.3815 17.2427 20.1907C16.3777 21 15.0473 21 12.3865 21H11.6132C8.95235 21 7.62195 21 6.75694 20.1907C5.89194 19.3815 5.80344 18.054 5.62644 15.3991L5.1665 8.5"/><path d="M9.5 11L10 16"/><path d="M14.5 11L14 16"/><path d="M6.5 6C6.55588 6 6.58382 6 6.60915 5.99936C7.43259 5.97849 8.15902 5.45491 8.43922 4.68032C8.44784 4.65649 8.45667 4.62999 8.47434 4.57697L8.57143 4.28571C8.65431 4.03708 8.69575 3.91276 8.75071 3.8072C8.97001 3.38607 9.37574 3.09364 9.84461 3.01877C9.96213 3 10.0932 3 10.3553 3H13.6447C13.9068 3 14.0379 3 14.1554 3.01877C14.6243 3.09364 15.03 3.38607 15.2493 3.8072C15.3043 3.91276 15.3457 4.03708 15.4286 4.28571L15.5257 4.57697C15.5433 4.62992 15.5522 4.65651 15.5608 4.68032C15.841 5.45491 16.5674 5.97849 17.3909 5.99936C17.4162 6 17.4441 6 17.5 6"/></svg>
+        <span class="dock-btn-text">Clear Data</span>
+      </button>
+      
+      <div class="dock-separator"></div>
+      
+      <label for="dockFileInput" class="dock-btn" title="Load Scan" style="margin:0">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="20" height="20"><path d="M17 9.00195C19.175 9.01406 20.3529 9.11051 21.1213 9.8789C22 10.7576 22 12.1718 22 15.0002V16.0002C22 18.8286 22 20.2429 21.1213 21.1215C20.2426 22.0002 18.8284 22.0002 16 22.0002H8C5.17157 22.0002 3.75736 22.0002 2.87868 21.1215C2 20.2429 2 18.8286 2 16.0002L2 15.0002C2 12.1718 2 10.7576 2.87868 9.87889C3.64706 9.11051 4.82497 9.01406 7 9.00195"/><path d="M12 15L12 2M12 2L15 5.5M12 2L9 5.5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="dock-btn-text">Load Scan</span>
+      </label>
+      <input type="file" id="dockFileInput" accept=".xml" style="display:none" />
+      
+      <button class="dock-btn" id="dockExportData" title="Export Data">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="20" height="20"><path d="M13 11L22 2M22 2H16.6562M22 2V7.34375"/><path d="M22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2"/></svg>
+        <span class="dock-btn-text">Export Data</span>
+      </button>
+
+      <!-- Theme toggle - all screen sizes -->
+      <div class="dock-separator"></div>
+      <button class="dock-btn" id="dockThemeToggle" title="Toggle Theme">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="20" height="20" id="themeIconDark"><path d="M21.0672 11.8568L20.4253 11.469L21.0672 11.8568ZM12.1432 2.93276L11.7553 2.29085V2.29085L12.1432 2.93276ZM21.25 12C21.25 17.1086 17.1086 21.25 12 21.25V22.75C17.9371 22.75 22.75 17.9371 22.75 12H21.25ZM12 21.25C6.89137 21.25 2.75 17.1086 2.75 12H1.25C1.25 17.9371 6.06294 22.75 12 22.75V21.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75V1.25C6.06294 1.25 1.25 6.06294 1.25 12H2.75ZM15.5 14.25C12.3244 14.25 9.75 11.6756 9.75 8.5H8.25C8.25 12.5041 11.4959 15.75 15.5 15.75V14.25ZM20.4253 11.469C19.4172 13.1373 17.5882 14.25 15.5 14.25V15.75C18.1349 15.75 20.4407 14.3439 21.7092 12.2447L20.4253 11.469ZM9.75 8.5C9.75 6.41182 10.8627 4.5828 12.531 3.57467L11.7553 2.29085C9.65609 3.5593 8.25 5.86509 8.25 8.5H9.75ZM12 2.75C11.9115 2.75 11.8077 2.71008 11.7324 2.63168C11.6686 2.56527 11.6538 2.50244 11.6503 2.47703C11.6461 2.44587 11.6482 2.35557 11.7553 2.29085L12.531 3.57467C13.0342 3.27065 13.196 2.71398 13.1368 2.27627C13.0754 1.82126 12.7166 1.25 12 1.25V2.75ZM21.7092 12.2447C21.6444 12.3518 21.5541 12.3539 21.523 12.3497C21.4976 12.3462 21.4347 12.3314 21.3683 12.2676C21.2899 12.1923 21.25 12.0885 21.25 12H22.75C22.75 11.2834 22.1787 10.9246 21.7237 10.8632C21.286 10.804 20.7293 10.9658 20.4253 11.469L21.7092 12.2447Z"/></svg>
+        <span class="dock-btn-text">Theme</span>
+      </button>
+
+      <!-- Keyboard help - all screen sizes -->
+      <button class="dock-btn" id="dockKeyboardHelp" title="Keyboard shortcuts">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span class="dock-btn-text">Help</span>
+      </button>
+    </div>
+
+    <!-- Drag & Drop Zone (shown when empty) -->
+    <div id="dropZone" class="drop-zone" style="display:none">
+      <svg class="drop-zone-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+      </svg>
+      <h3>Drop Nmap XML file here</h3>
+      <p class="small-muted">or use "Load Scan" button below</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state">
+<svg class="empty-state-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z" stroke-width="1.5"></path> <path d="M15 12L12 12M12 12L9 12M12 12L12 9M12 12L12 15" stroke-width="1.5" stroke-linecap="round"></path> </g></svg>
+      <h3>No Scan Data</h3>
+      <p style="margin:16px 0 24px 0;max-width:480px">Drag and drop your Nmap XML scan file here, or click the button below to browse and upload.</p>
+      <button id="uploadEmptyStateBtn" class="btn-upload" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 9C19.175 9 20.353 9.111 21.121 9.879C22 10.758 22 12.172 22 15V16C22 18.829 22 20.243 21.121 21.121C20.243 22 18.828 22 16 22H8C5.172 22 3.757 22 2.879 21.121C2 20.243 2 18.829 2 16L2 15C2 12.172 2 10.758 2.879 9.879C3.647 9.111 4.825 9 7 9" /><path d="M12 15L12 2M12 2L15 5.5M12 2L9 5.5" /></svg>
+        Upload Scan File
+      </button>
+      <input type="file" id="fileEmptyState" accept=".xml" style="display:none" />
+      <p class="small-muted" style="margin-top:16px">Supports .xml files only</p>
+    </div>
+
+    <div class="grid" id="mainContent" style="display:none">
+      <!-- Stats Row - Full Width -->
+      <section class="summary-row">
+        <div class="panel" title="Distinct IP addresses with status up">
+          <div class="stat-label">Hosts</div>
+          <div id="statHosts" class="stat-value">0</div>
+        </div>
+        <div class="panel" title="Unique open port numbers (TCP + UDP)">
+          <div class="stat-label">Open Ports</div>
+          <div id="statOpenPorts" class="stat-value">0</div>
+        </div>
+        <div class="panel" title="Unique/distinct open TCP port numbers">
+          <div class="stat-label">TCP Ports</div>
+          <div id="statTcp" class="stat-value">0</div>
+        </div>
+        <div class="panel" title="Unique/distinct open UDP port numbers">
+          <div class="stat-label">UDP Ports</div>
+          <div id="statUdp" class="stat-value">0</div>
+        </div>
+      </section>
+
+      <!-- Summary Section: 2-Column Layout -->
+      <div class="summary-grid">
+        <!-- Left Column: Risks & Open Ports Table -->
+        <section class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3 style="margin:0">Open Ports</h3>
+            <button id="toggleClosedPorts" class="btn-ghost" style="padding:6px 10px;font-size:12px">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M15 12H9"/></svg>
+              Show Closed
+            </button>
+          </div>
+          
+          <!-- Vulnerabilities Section -->
+          <div id="vulnSection" style="display:none;margin-bottom:16px">
+            <h3 style="color:#da1e28;margin:0 0 12px 0"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="16" height="16" style="vertical-align:middle;margin-right:6px"><path d="M5.31171 10.7615C8.23007 5.58716 9.68925 3 12 3C14.3107 3 15.7699 5.58716 18.6883 10.7615L19.0519 11.4063C21.4771 15.7061 22.6897 17.856 21.5937 19.428C20.4978 21 17.7864 21 12.3637 21H11.6363C6.21356 21 3.50217 21 2.40626 19.428C1.31034 17.856 2.52291 15.7061 4.94805 11.4063L5.31171 10.7615Z"/><path d="M12 8V13"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg> Potentially Risky Ports</h3>
+            <div class="small-muted" style="margin-bottom:8px;font-style:italic">Heuristic exposure indicators — not a vulnerability scanner. Verify with a dedicated scanner.</div>
+<div id="vulnList" class="list-group" style="max-height:30vh;overflow:auto"></div>
+          </div>
+
+          <div style="max-height:50vh;overflow:auto">
+            <table id="portsTable" class="data-table">
+              <thead>
+                <tr>
+                  <th style="text-align:left;cursor:pointer" data-sort="port">Port <span class="sort-ind" aria-hidden="true"></span></th>
+                  <th style="text-align:left;cursor:pointer" data-sort="proto">Protocol <span class="sort-ind" aria-hidden="true"></span></th>
+                  <th style="text-align:left;cursor:pointer" data-sort="service">Service <span class="sort-ind" aria-hidden="true"></span></th>
+                  <th style="text-align:right;cursor:pointer" data-sort="status">Status <span class="sort-ind" aria-hidden="true"></span></th>
+                  <th style="text-align:right;cursor:pointer" data-sort="count">Hosts <span class="sort-ind" aria-hidden="true"></span></th>
+                </tr>
+              </thead>
+              <tbody id="portsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Right Column: Services Chart -->
+        <section class="panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
+             <h3 style="margin:0" id="chartTitle">Top 10 Services</h3>
+             <div style="display:flex;gap:4px">
+               <button id="chartTabServices" class="btn-ghost" style="padding:6px 10px;font-size:12px;background:var(--interactive);color:#fff">Services</button>
+               <button id="chartTabPorts" class="btn-ghost" style="padding:6px 10px;font-size:12px">Ports</button>
+               <button id="chartTabVendors" class="btn-ghost" style="padding:6px 10px;font-size:12px">MAC Vendors</button>
+                <button id="chartTabProducts" class="btn-ghost" style="padding:6px 10px;font-size:12px">Products</button>
+             </div>
+           </div>
+          <div id="servicesChart" style="width:100%;max-width:none">
+            <canvas id="servicesChartCanvas" height="750"></canvas>
+          </div>
+        </section>
+      </div>
+
+      <!-- Host Inventory - Full Width -->
+      <section class="panel" id="ip-inventory-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:12px">
+          <div>
+            <h3 style="margin:0">Host Inventory</h3>
+            <div class="small-muted">Click an IP to view port details</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex:1;max-width:600px;flex-wrap:wrap">
+            <select id="inventorySort" style="padding:8px;border:1px solid var(--border);background:var(--layer-2);color:var(--text-01);border-radius:6px;flex:0 0 110px">
+              <option value="ip">Sort: IP</option>
+              <option value="open">Sort: Open ports</option>
+              <option value="filtered">Sort: Filtered Ports</option>
+              <option value="host">Sort: Hostname</option>
+            </select>
+            <input id="searchInput" placeholder="IP, MAC, Port Number, Service, Product..." aria-label="search" style="flex:1;padding:8px;border:1px solid var(--border);background:var(--layer-2);color:var(--text-01);border-radius:6px" />
+            <button id="clearSearch" class="btn-ghost" style="padding:8px 12px;display:none" aria-label="Clear search">✕</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;justify-content:flex-end">
+          <button id="copyIPs" class="btn-ghost">Copy IPs</button>
+          <button id="toggleHostsBtn" class="btn-ghost" style="padding:6px 10px;font-size:12px">Expand hosts</button>
+          <button id="togglePortsBtn" class="btn-ghost" style="padding:6px 10px;font-size:12px">Expand ports</button>
+        </div>
+        <div id="filterChip" class="small-muted" style="margin-bottom:8px;display:none"></div>
+        <div id="portFilterChips" style="margin-bottom:8px;display:none"></div>
+        <div id="searchResults" class="small-muted" style="margin-bottom:8px;display:none"></div>
+        <div id="ipAccordion" class="accordion"></div>
+      </section>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="export-modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
+      <div class="export-modal-content">
+        <h3 id="exportModalTitle">Export Data</h3>
+        <div class="export-options">
+          <button class="export-option-btn" id="exportModalJson">
+            <svg viewBox="0 0 16 16" fill="currentColor">
+              <path d="M13 11v3H3v-3H2v3c0 .55.45 1 1 1h10c.55 0 1-.45 1-1v-3h-1zm-1-1l-1.41-1.41L9 10.17V3H7v7.17L5.41 8.59 4 10l4 4 4-4z"/>
+            </svg>
+            Export as JSON
+          </button>
+          <button class="export-option-btn" id="exportModalCsv">
+            <svg viewBox="0 0 16 16" fill="currentColor">
+              <path d="M13 11v3H3v-3H2v3c0 .55.45 1 1 1h10c.55 0 1-.45 1-1v-3h-1zm-1-1l-1.41-1.41L9 10.17V3H7v7.17L5.41 8.59 4 10l4 4 4-4z"/>
+            </svg>
+            Export as CSV
+          </button>
+          <button class="export-option-btn" id="exportModalPdf">
+            <svg viewBox="0 0 16 16" fill="currentColor">
+              <path d="M13 11v3H3v-3H2v3c0 .55.45 1 1 1h10c.55 0 1-.45 1-1v-3h-1zm-1-1l-1.41-1.41L9 10.17V3H7v7.17L5.41 8.59 4 10l4 4 4-4z"/>
+            </svg>
+            Export as PDF
+          </button>
+          <button class="export-option-btn" id="cancelExportBtn" style="background:var(--layer);margin-top:8px">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clear Data Confirmation Modal -->
+  <div class="export-modal" id="clearConfirmModal" role="dialog" aria-modal="true" aria-labelledby="clearConfirmTitle">
+    <div class="export-modal-content">
+      <h3 id="clearConfirmTitle">Clear All Data?</h3>
+  <p style="margin:16px 0">This will remove all loaded scan data. This action cannot be undone.</p>
+      <div class="export-options">
+  <button class="export-option-btn" id="confirmClearBtn">
+          <svg viewBox="0 0 16 16" fill="currentColor">
+            <path d="M11 2H5L4 3H1v2h14V3h-3l-1-1zM3 6v9c0 .55.45 1 1 1h8c.55 0 1-.45 1-1V6H3z"/>
+          </svg>
+          Clear Data
+        </button>
+        <button class="export-option-btn" id="cancelClearBtn" style="background:var(--layer);margin-top:8px">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for viewing raw XML -->
+  <div id="rawModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Raw XML</h2>
+        <div style="display:flex;gap:8px">
+          <button id="copyRawXml" class="btn-ghost"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="14" height="14"><path d="M6 11C6 8.17157 6 6.75736 6.87868 5.87868C7.75736 5 9.17157 5 12 5H15C17.8284 5 19.2426 5 20.1213 5.87868C21 6.75736 21 8.17157 21 11V16C21 18.8284 21 20.2426 20.1213 21.1213C19.2426 22 17.8284 22 15 22H12C9.17157 22 7.75736 22 6.87868 21.1213C6 20.2426 6 18.8284 6 16V11Z"/><path d="M6 19C4.34315 19 3 17.6569 3 16V10C3 6.22876 3 4.34315 4.17157 3.17157C5.34315 2 7.22876 2 11 2H15C16.6569 2 18 3.34315 18 5"/></svg> Copy XML</button>
+          <button id="copyFormattedText" class="btn-ghost" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="14" height="14"><path d="M6 11C6 8.17157 6 6.75736 6.87868 5.87868C7.75736 5 9.17157 5 12 5H15C17.8284 5 19.2426 5 20.1213 5.87868C21 6.75736 21 8.17157 21 11V16C21 18.8284 21 20.2426 20.1213 21.1213C19.2426 22 17.8284 22 15 22H12C9.17157 22 7.75736 22 6.87868 21.1213C6 20.2426 6 18.8284 6 16V11Z"/><path d="M6 19C4.34315 19 3 17.6569 3 16V10C3 6.22876 3 4.34315 4.17157 3.17157C5.34315 2 7.22876 2 11 2H15C16.6569 2 18 3.34315 18 5"/></svg> Copy Text</button>
+          <button id="modalClose" class="modal-close">Close</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <pre id="modalXml"><code></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div id="shortcutsModal" class="shortcuts-modal">
+    <h3>Keyboard Shortcuts</h3>
+    <div class="shortcut-item">
+      <span>Search</span>
+      <kbd class="shortcut-key">/</kbd>
+    </div>
+    <div class="shortcut-item">
+      <span>Show this help</span>
+      <kbd class="shortcut-key">?</kbd>
+    </div>
+    <div class="shortcut-item">
+      <span>Close modal</span>
+      <kbd class="shortcut-key">Esc</kbd>
+    </div>
+    <div class="shortcut-item">
+      <span>Load example</span>
+      <kbd class="shortcut-key">Ctrl + L</kbd>
+    </div>
+    <div class="shortcut-item">
+      <span>Clear data</span>
+      <kbd class="shortcut-key">Ctrl + K</kbd>
+    </div>
+    <div style="margin-top:16px;text-align:right">
+      <button id="closeShortcuts" class="btn-ghost">Close</button>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <div style="margin-top:16px;color:var(--text-01);text-align:center">Parsing XML...</div>
+    </div>
+  </div>
+
+  <!-- ARIA Live Region -->
+  <div id="ariaLive" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <!-- jsPDF for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+  /* Production JS: robust parsing, edge-case handling, and UI wiring */
+  (function(){
+    'use strict';
+
+    /**
+     * @typedef {Object} ScanInfo
+     * @property {string} nmapVersion
+     * @property {string} args
+     * @property {string} startTime
+     * @property {string} endTime
+     *
+     * @typedef {Object} PortEntry
+     * @property {string} port
+     * @property {string} proto
+     * @property {string} state
+     * @property {string} reason
+     * @property {string} reasonTtl
+     * @property {string} owner
+     * @property {string} svc
+     * @property {string} product
+     * @property {string} version
+     * @property {string} extrainfo
+     * @property {string} ostype
+     * @property {string} method
+     * @property {string} conf
+     * @property {string} tunnel
+     * @property {string} svcProto
+     * @property {string} rpcnum
+     * @property {string} lowver
+     * @property {string} highver
+     * @property {string} hostname
+     * @property {string} devicetype
+     * @property {string} servicefp
+     * @property {string[]} cpe
+     * @property {{id:string,output:string,elems:{key:string,value:string}[]}[]} scripts
+     * @property {string} svcKey
+     * @property {string} portKey
+     * @property {string} [service]
+     * @property {string} [serviceName]
+     *
+     * @typedef {Object} HostEntry
+     * @property {string} ip
+     * @property {string[]} hostnames
+     * @property {string} status
+     * @property {string|null} mac
+     * @property {string|null} vendor
+     * @property {PortEntry[]} ports
+     * @property {{state:string,count:number,reasons:{reason:string,count:number}[]}[]} extraports
+     * @property {{name:string,accuracy:string,classes:Object[]}[]} os
+     * @property {{id:string,output:string}[]} scripts
+     * @property {string} raw
+     *
+     * @typedef {Object} RiskFinding
+     * @property {'critical'|'high'|'medium'|'low'} severity
+     * @property {string} label
+     * @property {string} note
+     * @property {number} port
+     * @property {string} portKey
+     * @property {'port'|'version'|'script'} source
+     *
+     * @typedef {Object} PortAggregate
+     * @property {string} portKey
+     * @property {string} port
+     * @property {string} proto
+     * @property {number} total
+     * @property {number} open
+     * @property {string[]} ipList
+     * @property {Object.<string,{count:number,ips:string[],svcName:string}>} services
+     * @property {string} [service]
+     * @property {string} [serviceName]
+     *
+     * @typedef {Object} ServiceAggregate
+     * @property {string} name
+     * @property {string} svcName
+     * @property {number} count
+     * @property {string[]} ports
+     *
+     * @typedef {Object} ScanMetrics
+     * @property {number} hosts
+     * @property {number} hostsDown
+     * @property {number} uniquePorts
+     * @property {number} portProtoPairs
+     * @property {number} uniqueOpenPorts
+     * @property {number} openEntries
+     * @property {number} services
+     * @property {number} tcpRecords
+     * @property {number} tcpDistinct
+     * @property {number} udpRecords
+     * @property {number} udpDistinct
+     */
+
+    // Debug logging — flip to true to trace UI wiring
+    const DEBUG = false;
+    const log = (...args) => { if(DEBUG) console.log(...args); };
+
+    // Data model
+    let DATA = {ips:{}, ports:{}, services:{}, hostCount:0};
+    let ACTIVE_FILTER = {type:null, key:null};
+    let showClosedPorts = false;
+    let servicesChart = null;
+    let vendorsChart = null;
+    // IPs currently rendered in the inventory (respects filter + search)
+    let VISIBLE_IPS = [];
+    let portsSort = {key:'count', dir:'desc'};
+    let chartTab = 'services';
+    let inventorySortKey = 'ip';
+    let ACTIVE_PORT_KEYS = new Set();
+    let showAllPorts = false;
+    // ============================================================================
+    // ELEMENT REFERENCES - Query all DOM elements needed for the application
+    // ============================================================================
+    const loadExample = document.getElementById('loadExample');
+    const exportJson = document.getElementById('exportJson');
+    const exportCsv = document.getElementById('exportCsv');
+    const exportPdf = document.getElementById('exportPdf');
+    const clearData = document.getElementById('clearData');
+    const themeToggle = document.getElementById('themeToggle');
+    const keyboardHelp = document.getElementById('keyboardHelp');
+    const servicesChartCanvas = document.getElementById('servicesChartCanvas');
+    const ipAccordion = document.getElementById('ipAccordion');
+    const searchInput = document.getElementById('searchInput');
+    const clearSearch = document.getElementById('clearSearch');
+    const searchResults = document.getElementById('searchResults');
+    const filterChip = document.getElementById('filterChip');
+    const inventorySort = document.getElementById('inventorySort');
+    const chartTabServices = document.getElementById('chartTabServices');
+    const chartTabPorts = document.getElementById('chartTabPorts');
+    const chartTabVendors = document.getElementById('chartTabVendors');
+    const chartTabProducts = document.getElementById('chartTabProducts');
+    const chartTitle = document.getElementById('chartTitle');
+
+    // Debug: Log if critical buttons are found
+    log('ðŸ” Button Check:', {
+      loadExample: !!loadExample,
+      exportJson: !!exportJson,
+      themeToggle: !!themeToggle,
+      keyboardHelp: !!keyboardHelp
+    });
+    const statHosts = document.getElementById('statHosts');
+    const statOpenPorts = document.getElementById('statOpenPorts');
+    const statTcp = document.getElementById('statTcp');
+    const statUdp = document.getElementById('statUdp');
+    const copyIPs = document.getElementById('copyIPs');
+    const toggleClosedPorts = document.getElementById('toggleClosedPorts');
+    const emptyState = document.getElementById('emptyState');
+    const mainContent = document.getElementById('mainContent');
+    const dropZone = document.getElementById('dropZone');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const scanDate = document.getElementById('scanDate');
+    const vulnSection = document.getElementById('vulnSection');
+    const vulnList = document.getElementById('vulnList');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const ariaLive = document.getElementById('ariaLive');
+
+    // Modal elements
+    const rawModal = document.getElementById('rawModal');
+    const modalClose = document.getElementById('modalClose');
+    const modalXml = document.getElementById('modalXml');
+    const modalTitle = document.getElementById('modalTitle');
+    const copyRawXml = document.getElementById('copyRawXml');
+    const copyFormattedText = document.getElementById('copyFormattedText');
+    const shortcutsModal = document.getElementById('shortcutsModal');
+    const closeShortcuts = document.getElementById('closeShortcuts');
+
+    // State
+    let currentFileName = '';
+    let searchDebounceTimer = null;
+
+    // Risk rules: heuristic exposure indicators (NOT a vulnerability scanner)
+    const SEVERITY_WEIGHT = {critical:4, high:3, medium:2, low:1};
+    const RISK_RULES = [
+      {port:21,  proto:'tcp', severity:'high',     label:'FTP',          note:'Unencrypted file transfer; cleartext credentials'},
+      {port:23,  proto:'tcp', severity:'critical', label:'Telnet',       note:'Unencrypted remote access'},
+      {port:25,  proto:'tcp', severity:'medium',   label:'SMTP',         note:'Email relay / open-relay exposure'},
+      {port:135, proto:'tcp', severity:'high',     label:'MS-RPC',       note:'Remote code execution surface'},
+      {port:139, proto:'tcp', severity:'high',     label:'NetBIOS',      note:'Information disclosure'},
+      {port:445, proto:'tcp', severity:'critical', label:'SMB',          note:'EternalBlue / SMBGhost exposure', scripts:['smb-vuln-ms17-010','smb-vuln-ms08-067','smb-vuln-ms10-054']},
+      {port:1433,proto:'tcp', severity:'high',     label:'MSSQL',        note:'Database exposure / SQL injection'},
+      {port:3306,proto:'tcp', severity:'high',     label:'MySQL',        note:'Database exposure'},
+      {port:3389,proto:'tcp', severity:'high',     label:'RDP',          note:'Brute-force target'},
+      {port:5432,proto:'tcp', severity:'high',     label:'PostgreSQL',   note:'Database exposure'},
+      {port:5900,proto:'tcp', severity:'medium',   label:'VNC',          note:'Weak authentication'},
+      {port:8080,proto:'tcp', severity:'medium',   label:'HTTP Proxy',   note:'Often misconfigured'},
+      {port:22,  proto:'tcp', severity:'low',     label:'SSH',          note:'Brute-force target if weak credentials'},
+      {port:80,  proto:'tcp', severity:'low',     label:'HTTP',         note:'Unencrypted web traffic'},
+      {port:443, proto:'tcp', severity:'low',     label:'HTTPS',        note:'Check TLS version / cipher strength'},
+      {port:389, proto:'tcp', severity:'medium',   label:'LDAP',         note:'Directory service exposure'},
+      {port:636, proto:'tcp', severity:'low',     label:'LDAPS',        note:'Directory service (encrypted)'},
+      {port:110, proto:'tcp', severity:'medium',   label:'POP3',         note:'Unencrypted mail retrieval'},
+      {port:143, proto:'tcp', severity:'medium',   label:'IMAP',         note:'Unencrypted mail retrieval'}
+    ];
+    const NSE_CRITICAL = ['smb-vuln-ms17-010','smb-vuln-ms08-067','ssl-heartbleed','http-vuln-cve2017-5638','ftp-anon'];
+    const EOL_RULES = [
+      {product:'nginx',    minMajor:1, minMinor:20, note:'nginx < 1.20 is EOL'},
+      {product:'OpenSSH',  minMajor:8, minMinor:0,  note:'OpenSSH < 8.0 is EOL'},
+      {product:'Apache',   minMajor:2, minMinor:4,  note:'Apache httpd < 2.4.50 has known CVEs'},
+      {product:'MySQL',    minMajor:8, minMinor:0,  note:'MySQL < 8.0 is EOL'},
+      {product:'PostgreSQL',minMajor:12,minMinor:0, note:'PostgreSQL < 12 is EOL'},
+      {product:'Redis',    minMajor:6, minMinor:2,  note:'Redis < 6.2 is EOL'}
+    ];
+    function isEol(product, version){
+      const rule = EOL_RULES.find(r => product.toLowerCase().includes(r.product.toLowerCase()));
+      if(!rule) return null;
+      const m = String(version).match(/^(\d+)\.(\d+)/);
+      if(!m) return null;
+      const maj = parseInt(m[1],10), min = parseInt(m[2],10);
+      if(maj < rule.minMajor || (maj === rule.minMajor && min < rule.minMinor)) return rule.note;
+      return null;
+    }
+    const VULNERABLE_PORTS = RISK_RULES.reduce((acc,r)=>{ acc[r.port]=r.note||r.label; return acc; }, {});
+
+  // Helpers
+  const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const escapeHtml = s => String(s||'').replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]);
+
+  // Structured port details: one labelled field per line, script output preserved verbatim.
+  // NSE script text: prefer the output attribute, fall back to <elem> children.
+  function scriptOutputText(s){
+    if(s && s.output) return s.output;
+    if(s && Array.isArray(s.elems) && s.elems.length){
+      return s.elems.map(e => `${e.key}: ${e.value}`).join('\n');
+    }
+    return '';
+  }
+
+  // nmap -oN style script block: first line shares the id line, last line uses |_
+  function formatScriptBlock(id, s){
+    const text = scriptOutputText(s).replace(/\r\n?/g, '\n').replace(/\n+$/, '');
+    const lines = text ? text.split('\n') : [];
+    if(!lines.length) return `|_${id}:`;
+    if(lines.length === 1) return `|_${id}: ${lines[0]}`;
+    const out = [`| ${id}: ${lines[0]}`];
+    lines.slice(1).forEach((line, i, arr) => {
+      out.push(`${i === arr.length - 1 ? '|_' : '| '}${line}`);
+    });
+    return out.join('\n');
+  }
+
+  function renderPortDetailsHtml(p){
+    const lines = [];
+    const line = (label, value) => {
+      lines.push(`<div class="detail-line"><span class="detail-label">${label}:</span> <span class="detail-value">${escapeHtml(value)}</span></div>`);
+    };
+    line('Service', p.svc || '');
+    line('Product', p.product || '');
+    line('Version', p.version || '');
+    line('Extra Info', p.extrainfo || '');
+    line('OS Type', p.ostype || '');
+    if(p.state){
+      const bits = [];
+      if(p.reason) bits.push(`reason ${p.reason}`);
+      if(p.reasonTtl) bits.push(`ttl ${p.reasonTtl}`);
+      line('State', bits.length ? `${p.state} (${bits.join(', ')})` : p.state);
+    }
+    if(p.owner) line('Owner', p.owner);
+    if(Array.isArray(p.cpe) && p.cpe.length) line('CPE', p.cpe.join(', '));
+    const svcBits = [];
+    if(p.method) svcBits.push(`method=${p.method}`);
+    if(p.conf) svcBits.push(`conf=${p.conf}`);
+    if(p.tunnel) svcBits.push(`tunnel=${p.tunnel}`);
+    if(p.svcProto) svcBits.push(`proto=${p.svcProto}`);
+    if(p.rpcnum) svcBits.push(`rpcnum=${p.rpcnum}`);
+    if(p.lowver) svcBits.push(`lowver=${p.lowver}`);
+    if(p.highver) svcBits.push(`highver=${p.highver}`);
+    if(p.hostname) svcBits.push(`hostname=${p.hostname}`);
+    if(p.devicetype) svcBits.push(`devicetype=${p.devicetype}`);
+    if(svcBits.length) line('Service attrs', svcBits.join(' '));
+    if(p.servicefp) line('Service FP', p.servicefp);
+    (Array.isArray(p.scripts) ? p.scripts : []).forEach(s => {
+      const out = scriptOutputText(s);
+      lines.push(`<div class="detail-script"><div class="detail-label">Script ID: ${escapeHtml(s.id)}</div>${out ? `<pre class="detail-script-output">${escapeHtml(out)}</pre>` : ''}</div>`);
+    });
+    return `<div class="port-details">${lines.join('')}</div>`;
+  }
+
+  // Plain-text host report in nmap -oN style (for View formatted + Copy Text).
+  function buildFormattedText(ip, e){
+    const out = [];
+    const primaryHostname = (e.hostnames && e.hostnames.length) ? e.hostnames[0] : '';
+    out.push(`Nmap scan report for ${primaryHostname ? `${primaryHostname} (${ip})` : ip}`);
+    out.push(`Host is ${e.status || 'up'}.`);
+    if(e.mac) out.push(`MAC Address: ${e.mac}${e.vendor ? ` (${e.vendor})` : ''}`);
+    (e.os || []).forEach(o => {
+      out.push(`OS details: ${o.name || 'unknown'}${o.accuracy ? ` (${o.accuracy}%)` : ''}`);
+      (o.classes || []).forEach(c => {
+        const bits = [c.vendor, c.family, c.gen, c.type].filter(Boolean);
+        if(bits.length) out.push(`OS class: ${bits.join(' ')}`);
+      });
+    });
+    (e.extraports || []).forEach(x => {
+      const reasons = (x.reasons || []).map(r => `${r.reason} × ${r.count}`).join(', ');
+      out.push(`Not shown: ${x.count} ${x.state} ports${reasons ? ` (${reasons})` : ''}`);
+    });
+    const ports = (e.ports || []).filter(p => p.state === 'open');
+    const rows = ports.map(p => {
+      const versionBits = [p.product, p.version].filter(Boolean).join(' ');
+      const extra = [];
+      if(p.extrainfo) extra.push(`(${p.extrainfo})`);
+      if(p.ostype) extra.push(`(${p.ostype})`);
+      return { p, port: p.portKey, state: p.state, service: p.svc, version: [versionBits, ...extra].filter(Boolean).join(' ') };
+    });
+    const wPort = Math.max(4, ...rows.map(r => r.port.length));
+    const wState = Math.max(5, ...rows.map(r => r.state.length));
+    const wService = Math.max(7, ...rows.map(r => r.service.length));
+    const pad = (v, w) => String(v).padEnd(w + 2);
+    out.push('');
+    out.push(`${pad('PORT', wPort)}${pad('STATE', wState)}${pad('SERVICE', wService)}VERSION`.trimEnd());
+    if(!rows.length) out.push('(no open ports)');
+    rows.forEach(r => {
+      out.push(`${pad(r.port, wPort)}${pad(r.state, wState)}${pad(r.service, wService)}${r.version}`.trimEnd());
+      const p = r.p;
+      if(p.reason || p.reasonTtl){
+        out.push(`  state reason: ${p.reason || 'unknown'}${p.reasonTtl ? ` (ttl ${p.reasonTtl})` : ''}`);
+      }
+      if(p.owner) out.push(`  owner: ${p.owner}`);
+      const svcBits = [];
+      if(p.method) svcBits.push(`method=${p.method}`);
+      if(p.conf) svcBits.push(`conf=${p.conf}`);
+      if(p.tunnel) svcBits.push(`tunnel=${p.tunnel}`);
+      if(p.svcProto) svcBits.push(`proto=${p.svcProto}`);
+      if(p.rpcnum) svcBits.push(`rpcnum=${p.rpcnum}`);
+      if(p.lowver) svcBits.push(`lowver=${p.lowver}`);
+      if(p.highver) svcBits.push(`highver=${p.highver}`);
+      if(p.hostname) svcBits.push(`hostname=${p.hostname}`);
+      if(p.devicetype) svcBits.push(`devicetype=${p.devicetype}`);
+      if(svcBits.length) out.push(`  service: ${svcBits.join(' ')}`);
+      if(p.servicefp) out.push(`  servicefp: ${p.servicefp}`);
+      if(p.cpe && p.cpe.length) out.push(`  CPE: ${p.cpe.join(', ')}`);
+      (p.scripts || []).forEach(s => out.push(formatScriptBlock(s.id, s)));
+    });
+    if(e.scripts && e.scripts.length){
+      out.push('');
+      out.push('Host script results:');
+      e.scripts.forEach(s => out.push(formatScriptBlock(s.id, s)));
+    }
+    return out.join('\n');
+  }
+
+  // Numeric IPv4 ordering; IPv6 (and anything else) falls back to localeCompare
+  function compareIp(a, b){
+    const pa = String(a).split('.');
+    const pb = String(b).split('.');
+    const isV4 = parts => parts.length === 4 && parts.every(o => /^\d{1,3}$/.test(o));
+    const aV4 = isV4(pa), bV4 = isV4(pb);
+    if(aV4 && bV4){
+      for(let i = 0; i < 4; i++){
+        const diff = parseInt(pa[i], 10) - parseInt(pb[i], 10);
+        if(diff) return diff;
+      }
+      return 0;
+    }
+    if(aV4 !== bV4) return aV4 ? -1 : 1;
+    return String(a).localeCompare(String(b));
+  }
+
+    // Show/hide loading
+    function showLoading(){ loadingOverlay.classList.add('active'); }
+    function hideLoading(){ loadingOverlay.classList.remove('active'); }
+
+    // ARIA announcements
+    function announce(msg){ ariaLive.textContent = msg; setTimeout(()=> ariaLive.textContent = '', 2000); }
+
+    // Count-up animation
+    function animateCount(element, target){
+      if(prefersReducedMotion){
+        element.textContent = target;
+        return;
+      }
+      element.classList.add('count-up');
+      element.textContent = target;
+      setTimeout(()=> element.classList.remove('count-up'), 400);
+    }
+
+    // Theme handling
+    function toggleTheme(){
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      
+      // Update theme button icon
+      const themeBtn = document.getElementById('dockThemeToggle');
+      if(themeBtn){
+        const moonSvg = '<svg viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff" stroke-width="0.00024000000000000003" transform="matrix(1, 0, 0, 1, 0, 0)rotate(0)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.384"></g><g id="SVGRepo_iconCarrier"> <path d="M21.0672 11.8568L20.4253 11.469L21.0672 11.8568ZM12.1432 2.93276L11.7553 2.29085V2.29085L12.1432 2.93276ZM21.25 12C21.25 17.1086 17.1086 21.25 12 21.25V22.75C17.9371 22.75 22.75 17.9371 22.75 12H21.25ZM12 21.25C6.89137 21.25 2.75 17.1086 2.75 12H1.25C1.25 17.9371 6.06294 22.75 12 22.75V21.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75V1.25C6.06294 1.25 1.25 6.06294 1.25 12H2.75ZM15.5 14.25C12.3244 14.25 9.75 11.6756 9.75 8.5H8.25C8.25 12.5041 11.4959 15.75 15.5 15.75V14.25ZM20.4253 11.469C19.4172 13.1373 17.5882 14.25 15.5 14.25V15.75C18.1349 15.75 20.4407 14.3439 21.7092 12.2447L20.4253 11.469ZM9.75 8.5C9.75 6.41182 10.8627 4.5828 12.531 3.57467L11.7553 2.29085C9.65609 3.5593 8.25 5.86509 8.25 8.5H9.75ZM12 2.75C11.9115 2.75 11.8077 2.71008 11.7324 2.63168C11.6686 2.56527 11.6538 2.50244 11.6503 2.47703C11.6461 2.44587 11.6482 2.35557 11.7553 2.29085L12.531 3.57467C13.0342 3.27065 13.196 2.71398 13.1368 2.27627C13.0754 1.82126 12.7166 1.25 12 1.25V2.75ZM21.7092 12.2447C21.6444 12.3518 21.5541 12.3539 21.523 12.3497C21.4976 12.3462 21.4347 12.3314 21.3683 12.2676C21.2899 12.1923 21.25 12.0885 21.25 12H22.75C22.75 11.2834 22.1787 10.9246 21.7237 10.8632C21.286 10.804 20.7293 10.9658 20.4253 11.469L21.7092 12.2447Z" fill="#1C274C"></path> </g></svg>';
+        const sunSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="20" height="20"><circle cx="12" cy="12" r="5"/><path d="M12 2V4"/><path d="M12 20V22"/><path d="M4 12L2 12"/><path d="M22 12L20 12"/><path d="M19.7778 4.22266L17.5558 6.25424"/><path d="M4.22217 4.22266L6.44418 6.25424"/><path d="M6.44434 17.5557L4.22211 19.7779"/><path d="M19.7778 19.7773L17.5558 17.5551"/></svg>';
+        themeBtn.innerHTML = next === 'light' ? moonSvg + '<span class="dock-btn-text">Theme</span>' : sunSvg + '<span class="dock-btn-text">Theme</span>';
+      }
+      
+      // Re-render charts with updated theme colors
+      if(servicesChart){
+        renderServices();
+      }
+      
+      announce(`Switched to ${next} mode`);
+    }
+
+    // Initialize theme from localStorage (fall back to OS preference on first visit)
+    const savedTheme = localStorage.getItem('theme');
+    const initialTheme = savedTheme || ((window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark');
+    if(initialTheme === 'light'){
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+    // Set initial theme icon
+    const themeBtn = document.getElementById('dockThemeToggle');
+    if(themeBtn){
+      const moonSvg = '<svg viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff" stroke-width="0.00024000000000000003" transform="matrix(1, 0, 0, 1, 0, 0)rotate(0)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.384"></g><g id="SVGRepo_iconCarrier"> <path d="M21.0672 11.8568L20.4253 11.469L21.0672 11.8568ZM12.1432 2.93276L11.7553 2.29085V2.29085L12.1432 2.93276ZM21.25 12C21.25 17.1086 17.1086 21.25 12 21.25V22.75C17.9371 22.75 22.75 17.9371 22.75 12H21.25ZM12 21.25C6.89137 21.25 2.75 17.1086 2.75 12H1.25C1.25 17.9371 6.06294 22.75 12 22.75V21.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75V1.25C6.06294 1.25 1.25 6.06294 1.25 12H2.75ZM15.5 14.25C12.3244 14.25 9.75 11.6756 9.75 8.5H8.25C8.25 12.5041 11.4959 15.75 15.5 15.75V14.25ZM20.4253 11.469C19.4172 13.1373 17.5882 14.25 15.5 14.25V15.75C18.1349 15.75 20.4407 14.3439 21.7092 12.2447L20.4253 11.469ZM9.75 8.5C9.75 6.41182 10.8627 4.5828 12.531 3.57467L11.7553 2.29085C9.65609 3.5593 8.25 5.86509 8.25 8.5H9.75ZM12 2.75C11.9115 2.75 11.8077 2.71008 11.7324 2.63168C11.6686 2.56527 11.6538 2.50244 11.6503 2.47703C11.6461 2.44587 11.6482 2.35557 11.7553 2.29085L12.531 3.57467C13.0342 3.27065 13.196 2.71398 13.1368 2.27627C13.0754 1.82126 12.7166 1.25 12 1.25V2.75ZM21.7092 12.2447C21.6444 12.3518 21.5541 12.3539 21.523 12.3497C21.4976 12.3462 21.4347 12.3314 21.3683 12.2676C21.2899 12.1923 21.25 12.0885 21.25 12H22.75C22.75 11.2834 22.1787 10.9246 21.7237 10.8632C21.286 10.804 20.7293 10.9658 20.4253 11.469L21.7092 12.2447Z" fill="#1C274C"></path> </g></svg>';
+      const sunSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="20" height="20"><circle cx="12" cy="12" r="5"/><path d="M12 2V4"/><path d="M12 20V22"/><path d="M4 12L2 12"/><path d="M22 12L20 12"/><path d="M19.7778 4.22266L17.5558 6.25424"/><path d="M4.22217 4.22266L6.44418 6.25424"/><path d="M6.44434 17.5557L4.22211 19.7779"/><path d="M19.7778 19.7773L17.5558 17.5551"/></svg>';
+      themeBtn.innerHTML = (initialTheme === 'light' ? moonSvg : sunSvg) + '<span class="dock-btn-text">Theme</span>';
+    }
+
+    // Modal registry — shared open/close, Esc, backdrop, focus trap and scroll lock
+    const MODAL_IDS = ['rawModal','exportModal','clearConfirmModal','shortcutsModal'];
+    let lastFocusedEl = null;
+
+    function getOpenModal(){
+      for(const id of MODAL_IDS){
+        const el = document.getElementById(id);
+        if(el && el.classList.contains('active')) return el;
+      }
+      return null;
+    }
+
+    function openModalEl(el, focusEl){
+      if(!el) return;
+      lastFocusedEl = document.activeElement;
+      el.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      const target = focusEl || el.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if(target) setTimeout(()=> target.focus(), 0);
+    }
+
+    function closeModalEl(el){
+      if(!el || !el.classList.contains('active')) return;
+      el.classList.remove('active');
+      if(!getOpenModal()) document.body.style.overflow = '';
+      if(lastFocusedEl && document.contains(lastFocusedEl)){
+        lastFocusedEl.focus();
+        lastFocusedEl = null;
+      }
+    }
+
+    function closeAllModals(){
+      MODAL_IDS.forEach(id => closeModalEl(document.getElementById(id)));
+    }
+
+    function openFormattedModal(ip, e){
+      modalTitle.textContent = `Host Details — ${ip}`;
+      copyRawXml.style.display = 'none';
+      copyFormattedText.style.display = '';
+      const text = buildFormattedText(ip, e);
+      modalXml.classList.add('formatted-text');
+      modalXml.innerHTML = '<code></code>';
+      modalXml.querySelector('code').textContent = text;
+      openModalEl(rawModal, copyFormattedText);
+    }
+
+    function openRawModal(ip, xmlContent){
+      modalTitle.textContent = `Raw XML — ${ip}`;
+      copyRawXml.style.display = '';
+      copyFormattedText.style.display = 'none';
+      modalXml.classList.remove('formatted-text');
+      modalXml.innerHTML = '<code></code>';
+      modalXml.querySelector('code').innerHTML = syntaxHighlightXml(xmlContent);
+      openModalEl(rawModal, copyRawXml);
+    }
+
+    // Backdrop clicks close the three full-screen modals (shortcuts is a centered box)
+    ['rawModal','exportModal','clearConfirmModal'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.addEventListener('click', (e)=>{ if(e.target === el) closeModalEl(el); });
+    });
+
+    // Focus trap for the active modal
+    document.addEventListener('keydown', (e)=>{
+      if(e.key !== 'Tab') return;
+      const modal = getOpenModal();
+      if(!modal) return;
+      const focusables = Array.from(modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+        .filter(el => !el.disabled && el.offsetParent !== null);
+      if(!focusables.length) return;
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    });
+
+    function syntaxHighlightXml(xml){
+      // Simple XML syntax highlighting
+      return xml
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/(&lt;\/?[\w:]+)([\s>])/g, '<span class="xml-tag">$1</span>$2')
+        .replace(/([\w:]+)=/g, '<span class="xml-attr">$1</span>=')
+        .replace(/="([^"]*)"/g, '=<span class="xml-value">"$1"</span>')
+        .replace(/(&lt;!--.*?--&gt;)/g, '<span class="xml-comment">$1</span>');
+    }
+
+    // Wire up modals
+    modalClose.addEventListener('click', ()=> closeModalEl(rawModal));
+    copyRawXml.addEventListener('click', ()=>{
+      const code = modalXml.querySelector('code').textContent;
+      copyText(code, 'Raw XML copied');
+    });
+    copyFormattedText.addEventListener('click', ()=>{
+      copyText(modalXml.textContent, 'Host details copied');
+    });
+
+    // Shortcuts modal
+    keyboardHelp.addEventListener('click', ()=> openModalEl(shortcutsModal, closeShortcuts));
+    closeShortcuts.addEventListener('click', ()=> closeModalEl(shortcutsModal));
+
+    // Theme toggle
+    themeToggle.addEventListener('click', toggleTheme);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e)=> {
+      if(e.key === 'Escape'){
+        closeAllModals();
+      }
+      if(e.key === '?' && !e.target.matches('input,textarea')){
+        e.preventDefault();
+        if(shortcutsModal.classList.contains('active')) closeModalEl(shortcutsModal);
+        else openModalEl(shortcutsModal, closeShortcuts);
+      }
+      if(e.key === '/' && !e.target.matches('input,textarea')){
+        e.preventDefault();
+        searchInput.focus();
+      }
+      if(e.ctrlKey && e.key === 'l'){
+        e.preventDefault();
+        loadExample.click();
+      }
+      if(e.ctrlKey && e.key === 'k'){
+        e.preventDefault();
+        if(DATA.hostCount > 0) openModalEl(document.getElementById('clearConfirmModal'), document.getElementById('cancelClearBtn'));
+      }
+    });
+
+
+    function reset(){ 
+      DATA={ips:{},ports:{},services:{},hostCount:0,scanInfo:{}}; 
+      ACTIVE_FILTER={type:null,key:null}; 
+      VISIBLE_IPS=[];
+      ACTIVE_PORT_KEYS.clear();
+      if(searchInput) searchInput.value = '';
+      if(searchResults) searchResults.style.display = 'none';
+      if(clearSearch) clearSearch.style.display = 'none';
+      if(servicesChart){ servicesChart.destroy(); servicesChart=null; }
+      const portsTableBody = document.getElementById('portsTableBody');
+      if(portsTableBody) portsTableBody.innerHTML=''; 
+      ipAccordion.innerHTML=''; 
+      vulnList.innerHTML='';
+      statHosts.textContent='0'; 
+      statOpenPorts.textContent='0'; 
+      emptyState.style.display = 'flex';
+      mainContent.style.display = 'none';
+      fileInfo.classList.remove('active');
+      vulnSection.style.display = 'none';
+      clearData.style.display = 'none';
+      dropZone.style.display = 'none';
+      document.getElementById('dockClearData').style.display = 'none';
+    }
+
+    function parseNmapXml(xmlText, filename='scan.xml'){
+      showLoading();
+      currentFileName = filename;
+
+      setTimeout(()=>{
+        try {
+          reset();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(xmlText, 'application/xml');
+          const parserError = doc.querySelector('parsererror');
+          if(parserError) throw new Error('Invalid XML: ' + parserError.textContent.slice(0, 120));
+          const nmaprun = doc.querySelector('nmaprun');
+          if(!nmaprun) throw new Error('Not a valid Nmap XML file (missing <nmaprun>)');
+
+          const next = {ips:{}, ports:{}, services:{}, hostCount:0, hostsDown:0, downHosts:[], extraports:{}, scanInfo:{}, metrics:null, portNumbers:{}};
+
+          next.scanInfo = {
+            nmapVersion: nmaprun.getAttribute('version') || 'Unknown',
+            args: nmaprun.getAttribute('args') || '',
+            startTime: nmaprun.getAttribute('start') ? new Date(parseInt(nmaprun.getAttribute('start'))*1000).toLocaleString() : '',
+            endTime: nmaprun.querySelector('runstats finished')?.getAttribute('time') ?
+              new Date(parseInt(nmaprun.querySelector('runstats finished').getAttribute('time'))*1000).toLocaleString() : ''
+          };
+
+          function aggregatePort(next, ip, port, proto, state, svc, svcKey, portKey){
+            if(!next.ports[portKey]) next.ports[portKey] = {portKey, port, proto, totalIps: new Set(), openIps: new Set(), services: {}};
+            next.ports[portKey].totalIps.add(ip);
+            if(state === 'open') next.ports[portKey].openIps.add(ip);
+            if(!next.ports[portKey].services[svcKey]) next.ports[portKey].services[svcKey] = {count:0, ips: new Set(), svcName: svc};
+            next.ports[portKey].services[svcKey].count += 1;
+            next.ports[portKey].services[svcKey].ips.add(ip);
+            if(!next.services[svcKey]) next.services[svcKey] = {name: svcKey, svcName: svc, count:0, ports: new Set()};
+            next.services[svcKey].count += 1;
+            next.services[svcKey].ports.add(portKey);
+          }
+
+          function mergeExtraports(ipEntry, next, ip, ep){
+            const state = ep.getAttribute('state');
+            const count = parseInt(ep.getAttribute('count') || '0', 10);
+            const reasons = Array.from(ep.querySelectorAll('extrareasons')).map(r => ({reason: r.getAttribute('reason'), count: parseInt(r.getAttribute('count')||'0',10)}));
+            ipEntry.extraports.push({state, count, reasons});
+            if(!next.extraports[state]) next.extraports[state] = {count:0, hosts:0};
+            next.extraports[state].count += count;
+            next.extraports[state].hosts += 1;
+          }
+
+          // Parse every attribute nmap can emit on a <port>/<state>/<owner>/<service>.
+          function parsePortElement(p){
+            const proto = p.getAttribute('protocol') || 'tcp';
+            const port = p.getAttribute('portid');
+            const stateEl = p.querySelector('state');
+            const state = stateEl?.getAttribute('state') || 'unknown';
+            const reason = stateEl?.getAttribute('reason') || '';
+            const reasonTtl = stateEl?.getAttribute('reason_ttl') || '';
+            const owner = p.querySelector('owner')?.getAttribute('name') || '';
+            const svcEl = p.querySelector('service');
+            const svc = svcEl?.getAttribute('name') || '(unknown)';
+            const product = svcEl?.getAttribute('product') || '';
+            const version = svcEl?.getAttribute('version') || '';
+            const extrainfo = svcEl?.getAttribute('extrainfo') || '';
+            const ostype = svcEl?.getAttribute('ostype') || '';
+            const method = svcEl?.getAttribute('method') || '';
+            const conf = svcEl?.getAttribute('conf') || '';
+            const tunnel = svcEl?.getAttribute('tunnel') || '';
+            const svcProto = svcEl?.getAttribute('proto') || '';
+            const rpcnum = svcEl?.getAttribute('rpcnum') || '';
+            const lowver = svcEl?.getAttribute('lowver') || '';
+            const highver = svcEl?.getAttribute('highver') || '';
+            const hostname = svcEl?.getAttribute('hostname') || '';
+            const devicetype = svcEl?.getAttribute('devicetype') || '';
+            const servicefp = svcEl?.getAttribute('servicefp') || '';
+            const cpe = Array.from(svcEl?.querySelectorAll('cpe') || []).map(c => c.textContent).filter(Boolean);
+            const scripts = Array.from(p.querySelectorAll('script')).map(s => ({
+              id: s.getAttribute('id'),
+              output: s.getAttribute('output') || '',
+              elems: Array.from(s.querySelectorAll('elem')).map(el => ({key: el.getAttribute('key'), value: el.textContent}))
+            }));
+            const svcFull = [svc, product, version].filter(Boolean).join(' | ');
+            const svcKey = svcFull || svc;
+            const portKey = `${port}/${proto}`;
+            return {
+              port, proto, state, reason, reasonTtl, owner,
+              svc, product, version, extrainfo, ostype,
+              method, conf, tunnel, svcProto, rpcnum, lowver, highver,
+              hostname, devicetype, servicefp,
+              cpe, scripts, svcKey, portKey
+            };
+          }
+
+          const hostEls = Array.from(doc.querySelectorAll('host'));
+
+          hostEls.forEach(h => {
+            const addrEls = Array.from(h.querySelectorAll('address'));
+            if(addrEls.length === 0) return;
+            const ipElV4 = addrEls.find(a => a.getAttribute('addrtype') === 'ipv4');
+            const ip = (ipElV4 && ipElV4.getAttribute('addr')) || addrEls[0].getAttribute('addr');
+            if(!ip) return;
+
+            const status = h.querySelector('status')?.getAttribute('state') || 'up';
+            if(status === 'down'){
+              next.hostsDown += 1;
+              next.downHosts.push(ip);
+              return;
+            }
+
+            const hostnames = Array.from(h.querySelectorAll('hostnames > hostname')).map(n => n.getAttribute('name')).filter(Boolean);
+            const portEls = Array.from(h.querySelectorAll('port'));
+            const extraportEls = Array.from(h.querySelectorAll('extraports'));
+            const osMatches = Array.from(h.querySelectorAll('os > osmatch'));
+            const hostScripts = Array.from(h.querySelectorAll('hostscript > script'));
+            const macAddr = addrEls.find(a => a.getAttribute('addrtype') === 'mac');
+
+            // --- merge into an existing host entry ---
+            if(next.ips[ip]){
+              const existing = next.ips[ip];
+              hostnames.forEach(n => { if(!existing.hostnames.includes(n)) existing.hostnames.push(n); });
+              portEls.forEach(p => {
+                const parsed = parsePortElement(p);
+                const existingPort = existing.ports.find(ep => ep.portKey === parsed.portKey);
+                if(existingPort){
+                  // Merge data from this port occurrence into the existing port entry
+                  // Merge scripts (deduplicate by id)
+                  if(parsed.scripts && parsed.scripts.length){
+                    const existingScriptIds = new Set(existingPort.scripts.map(s => s.id));
+                    parsed.scripts.forEach(s => {
+                      if(!existingScriptIds.has(s.id)){
+                        existingPort.scripts.push(s);
+                      }
+                    });
+                  }
+                  // Merge service attributes (fill in missing ones from new occurrence)
+                  if(parsed.product && !existingPort.product) existingPort.product = parsed.product;
+                  if(parsed.version && !existingPort.version) existingPort.version = parsed.version;
+                  if(parsed.extrainfo && !existingPort.extrainfo) existingPort.extrainfo = parsed.extrainfo;
+                  if(parsed.ostype && !existingPort.ostype) existingPort.ostype = parsed.ostype;
+                  if(parsed.method && !existingPort.method) existingPort.method = parsed.method;
+                  if(parsed.conf && !existingPort.conf) existingPort.conf = parsed.conf;
+                  if(parsed.tunnel && !existingPort.tunnel) existingPort.tunnel = parsed.tunnel;
+                  if(parsed.svcProto && !existingPort.svcProto) existingPort.svcProto = parsed.svcProto;
+                  if(parsed.rpcnum && !existingPort.rpcnum) existingPort.rpcnum = parsed.rpcnum;
+                  if(parsed.lowver && !existingPort.lowver) existingPort.lowver = parsed.lowver;
+                  if(parsed.highver && !existingPort.highver) existingPort.highver = parsed.highver;
+                  if(parsed.hostname && !existingPort.hostname) existingPort.hostname = parsed.hostname;
+                  if(parsed.devicetype && !existingPort.devicetype) existingPort.devicetype = parsed.devicetype;
+                  if(parsed.servicefp && !existingPort.servicefp) existingPort.servicefp = parsed.servicefp;
+                  if(parsed.owner && !existingPort.owner) existingPort.owner = parsed.owner;
+                  // Prefer 'open' state over closed/filtered
+                  if(parsed.state === 'open' && existingPort.state !== 'open') existingPort.state = parsed.state;
+                  if(parsed.reason && !existingPort.reason) existingPort.reason = parsed.reason;
+                  if(parsed.reasonTtl && !existingPort.reasonTtl) existingPort.reasonTtl = parsed.reasonTtl;
+                  // Merge CPEs (deduplicate)
+                  if(parsed.cpe && parsed.cpe.length){
+                    if(!existingPort.cpe) existingPort.cpe = [];
+                    const existingCpes = new Set(existingPort.cpe);
+                    parsed.cpe.forEach(c => { if(!existingCpes.has(c)) existingPort.cpe.push(c); });
+                  }
+                  // Recompute serviceKey since product/version may have changed
+                  const svcFull = [existingPort.svc, existingPort.product, existingPort.version].filter(Boolean).join(' | ');
+                  existingPort.svcKey = svcFull || existingPort.svc;
+                  // Recompute serviceName if needed
+                  if(!existingPort.serviceName || existingPort.serviceName === '-'){
+                    existingPort.serviceName = existingPort.svc || '-';
+                  }
+                } else {
+                  existing.ports.push(parsed);
+                  aggregatePort(next, ip, parsed.port, parsed.proto, parsed.state, parsed.svc, parsed.svcKey, parsed.portKey);
+                }
+              });
+              extraportEls.forEach(ep => mergeExtraports(existing, next, ip, ep));
+              return;
+            }
+
+            // --- new host ---
+            next.hostCount += 1;
+            const ipEntry = {
+              ip, hostnames, status, raw: h.outerHTML, ports: [], extraports: [], os: [], scripts: [],
+              mac: macAddr ? macAddr.getAttribute('addr') : null,
+              vendor: macAddr ? (macAddr.getAttribute('vendor') || null) : null
+            };
+
+            osMatches.forEach(m => {
+              ipEntry.os.push({
+                name: m.getAttribute('name'),
+                accuracy: m.getAttribute('accuracy'),
+                classes: Array.from(m.querySelectorAll('osclass')).map(c => ({
+                  family: c.getAttribute('osfamily'),
+                  gen: c.getAttribute('osgen'),
+                  type: c.getAttribute('type'),
+                  vendor: c.getAttribute('vendor')
+                }))
+              });
+            });
+            hostScripts.forEach(s => ipEntry.scripts.push({
+              id: s.getAttribute('id'),
+              output: s.getAttribute('output') || '',
+              elems: Array.from(s.querySelectorAll('elem')).map(el => ({key: el.getAttribute('key'), value: el.textContent}))
+            }));
+
+            portEls.forEach(p => {
+              const parsed = parsePortElement(p);
+              ipEntry.ports.push(parsed);
+              aggregatePort(next, ip, parsed.port, parsed.proto, parsed.state, parsed.svc, parsed.svcKey, parsed.portKey);
+            });
+
+            extraportEls.forEach(ep => mergeExtraports(ipEntry, next, ip, ep));
+
+            next.ips[ip] = ipEntry;
+          });
+
+          // --- finalize ---
+          Object.values(next.ports).forEach(p => {
+            p.total = p.totalIps.size;
+            p.open = p.openIps.size;
+            p.ipList = Array.from(p.totalIps);
+            if(!next.portNumbers[p.port]) next.portNumbers[p.port] = {port: p.port, openHosts: new Set(), protos: new Set(), services: new Set()};
+            next.portNumbers[p.port].protos.add(p.proto);
+            Object.keys(p.services).forEach(k => next.portNumbers[p.port].services.add(k));
+            p.openIps.forEach(ip => next.portNumbers[p.port].openHosts.add(ip));
+            delete p.totalIps;
+            delete p.openIps;
+            Object.keys(p.services).forEach(k => p.services[k].ips = Array.from(p.services[k].ips));
+            const serviceEntries = Object.entries(p.services);
+            if(serviceEntries.length > 0) {
+              const mostCommon = serviceEntries.sort((a,b) => b[1].count - a[1].count)[0];
+              p.service = mostCommon[0];
+              p.serviceName = p.services[mostCommon[0]].svcName || mostCommon[0].split(' | ')[0];
+            } else {
+              p.serviceName = '-';
+            }
+          });
+          Object.values(next.services).forEach(s => s.ports = Array.from(s.ports));
+
+          Object.values(next.portNumbers).forEach(pn => {
+            pn.openHosts = Array.from(pn.openHosts);
+            pn.protos = Array.from(pn.protos);
+            pn.services = Array.from(pn.services);
+          });
+
+          const tcpKeys = Object.keys(next.ports).filter(k => k.endsWith('/tcp'));
+          const udpKeys = Object.keys(next.ports).filter(k => k.endsWith('/udp'));
+          next.metrics = {
+            hosts: next.hostCount,
+            hostsDown: next.hostsDown,
+            uniquePorts: new Set(Object.keys(next.ports).map(k => k.split('/')[0])).size,
+            portProtoPairs: Object.keys(next.ports).length,
+            uniqueOpenPorts: new Set(Object.values(next.ports).filter(p => p.open > 0).map(p => p.port)).size,
+            openEntries: Object.values(next.ports).reduce((a,b) => a + (b.open||0), 0),
+            services: new Set(Object.values(next.services).map(s => s.svcName)).size,
+            tcpRecords: tcpKeys.reduce((a,k) => a + (next.ports[k].total || 0), 0),
+            tcpDistinct: new Set(tcpKeys.map(k => k.split('/')[0])).size,
+            tcpDistinctOpen: new Set(Object.values(next.ports).filter(p => p.open > 0 && p.proto === 'tcp').map(p => p.port)).size,
+            udpRecords: udpKeys.reduce((a,k) => a + (next.ports[k].total || 0), 0),
+            udpDistinct: new Set(udpKeys.map(k => k.split('/')[0])).size,
+            udpDistinctOpen: new Set(Object.values(next.ports).filter(p => p.open > 0 && p.proto === 'udp').map(p => p.port)).size
+          };
+
+          DATA = next;
+          emptyState.style.display = 'none';
+          mainContent.style.display = 'grid';
+          clearData.style.display = 'inline-block';
+          dropZone.style.display = 'none';
+          document.getElementById('dockClearData').style.display = 'flex';
+
+          fileInfo.classList.add('active');
+          fileName.textContent = currentFileName;
+          if(DATA.scanInfo.startTime) scanDate.textContent = `Scanned: ${DATA.scanInfo.startTime}`;
+
+          renderAll();
+          announce(`Loaded ${DATA.hostCount} hosts with ${Object.keys(DATA.ports).length} unique ports`);
+        } catch(error) {
+          console.error('Parse error:', error);
+          toast('Error: ' + error.message);
+        } finally {
+          hideLoading();
+        }
+      }, 50);
+    }
+
+    function renderAll(){ 
+      try {
+        renderSummary(); 
+        renderPorts(); 
+        renderServices(); 
+        renderVulnerabilities();
+        renderIPs(); 
+        document.getElementById('dockClearData').style.display = 'flex';
+      } catch(error) {
+        console.error('Render error:', error);
+      }
+    }
+
+    function renderSummary(){ 
+      if(!statHosts || !statOpenPorts || !statTcp || !statUdp) return;
+      const m = DATA.metrics || {};
+      animateCount(statHosts, m.hosts != null ? m.hosts : DATA.hostCount); 
+      animateCount(statOpenPorts, m.uniqueOpenPorts != null ? m.uniqueOpenPorts : 0); 
+      animateCount(statTcp, m.tcpDistinctOpen != null ? m.tcpDistinctOpen : 0);
+      animateCount(statUdp, m.udpDistinctOpen != null ? m.udpDistinctOpen : 0);
+      const tcpCard = statTcp && statTcp.parentElement;
+      const udpCard = statUdp && statUdp.parentElement;
+      if(tcpCard) tcpCard.title = `Distinct open TCP port numbers: ${m.tcpDistinctOpen != null ? m.tcpDistinctOpen : 0}`;
+      if(udpCard) udpCard.title = `Distinct open UDP port numbers: ${m.udpDistinctOpen != null ? m.udpDistinctOpen : 0}`;
+      if(statOpenPorts && statOpenPorts.parentElement) statOpenPorts.parentElement.title = `Unique open port numbers (TCP + UDP): ${m.uniqueOpenPorts != null ? m.uniqueOpenPorts : 0}`;
+      if(statHosts && statHosts.parentElement) statHosts.parentElement.title = m.hostsDown ? `${m.hostsDown} down host(s) excluded` : 'Distinct IP addresses with status up';
+    }
+
+    // Compute per-host risk findings (returns array of {severity, label, note, port, portKey, source})
+    function hostRisks(e){
+      const findings = [];
+      const seenPorts = new Set();
+      e.ports.forEach(p => {
+        if(p.state !== 'open') return;
+        const portNum = parseInt(p.port,10);
+        const rule = RISK_RULES.find(r => r.port === portNum && r.proto === (p.proto||'tcp'));
+        if(rule){
+          let sev = rule.severity;
+          // NSE escalation
+          if(Array.isArray(p.scripts) && p.scripts.some(s => NSE_CRITICAL.includes(s.id) || (rule.scripts||[]).includes(s.id))) sev = 'critical';
+          const eol = isEol(p.product, p.version);
+          if(eol) findings.push({severity:'medium', label:'EOL component', note: eol, port:portNum, portKey:p.portKey, source:'version'});
+          findings.push({severity:sev, label:rule.label, note:rule.note, port:portNum, portKey:p.portKey, source:'port'});
+        } else {
+          const eol = isEol(p.product, p.version);
+          if(eol) findings.push({severity:'medium', label:'EOL component', note: eol, port:portNum, portKey:p.portKey, source:'version'});
+        }
+      });
+      // de-dupe identical (port+label)
+      const seen = new Set();
+      return findings.filter(f => {
+        const k = f.port + '|' + f.label;
+        if(seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+    }
+
+    function hostRiskScore(e){
+      return hostRisks(e).reduce((a,f) => a + (SEVERITY_WEIGHT[f.severity]||0), 0);
+    }
+
+    function hostMaxSeverity(e){
+      const sevs = hostRisks(e).map(f=>f.severity);
+      if(sevs.includes('critical')) return 'critical';
+      if(sevs.includes('high')) return 'high';
+      if(sevs.includes('medium')) return 'medium';
+      if(sevs.includes('low')) return 'low';
+      return null;
+    }
+
+    function renderVulnerabilities(){
+      if(!vulnSection || !vulnList) return;
+      // Aggregate by port
+      const byPort = {};
+      Object.values(DATA.ports).forEach(p => {
+        if(!(p.open > 0)) return;
+        const portNum = parseInt(p.port,10);
+        const rule = RISK_RULES.find(r => r.port === portNum && r.proto === (p.proto||'tcp'));
+        if(!rule) return;
+        let sev = rule.severity;
+        // NSE escalation: any host with this port has a critical script
+        const hasCriticalScript = (p.services && Object.keys(p.services).some(k => (p.services[k].ips||[]).some(ip => {
+          const e = DATA.ips[ip];
+          return e && e.ports.some(pp => pp.portKey === p.portKey && Array.isArray(pp.scripts) && pp.scripts.some(s => NSE_CRITICAL.includes(s.id) || (rule.scripts||[]).includes(s.id)));
+        })));
+        if(hasCriticalScript) sev = 'critical';
+        const eolHosts = (p.ipList||[]).filter(ip => {
+          const e = DATA.ips[ip];
+          return e && e.ports.some(pp => pp.portKey === p.portKey && isEol(pp.product, pp.version));
+        }).length;
+        if(!byPort[portNum]) byPort[portNum] = {port:portNum, portKey:p.portKey, rule, sev, hosts:p.open, eolHosts};
+        else {
+          byPort[portNum].hosts += 0; // already counted via p.open
+          if(sev === 'critical') byPort[portNum].sev = 'critical';
+          byPort[portNum].eolHosts += eolHosts;
+        }
+      });
+
+      // EOL-only findings (ports not in RISK_RULES but with EOL components)
+      const eolOnly = [];
+      Object.values(DATA.ports).forEach(p => {
+        if(!(p.open > 0)) return;
+        const portNum = parseInt(p.port,10);
+        const rule = RISK_RULES.find(r => r.port === portNum && r.proto === (p.proto||'tcp'));
+        if(rule) return;
+        const eolHosts = (p.ipList||[]).filter(ip => {
+          const e = DATA.ips[ip];
+          return e && e.ports.some(pp => pp.portKey === p.portKey && isEol(pp.product, pp.version));
+        }).length;
+        if(eolHosts > 0) eolOnly.push({port:portNum, portKey:p.portKey, hosts:eolHosts});
+      });
+
+      const vulnPorts = Object.values(byPort).sort((a,b) => a.port - b.port);
+
+      if(vulnPorts.length > 0 || eolOnly.length > 0){
+        vulnSection.style.display = 'block';
+        vulnList.innerHTML = '';
+        vulnPorts.forEach(v => {
+          const el = document.createElement('div');
+          el.className = 'list-item';
+          el.style.background = 'rgba(218,30,40,0.05)';
+          const sevClass = 'risk-' + v.sev;
+          el.innerHTML = `<div><span class='port-badge' style='margin-left:6px'>${v.port}</span> <span style='margin-left:6px;font-weight:600'>${escapeHtml(v.rule.label)}</span><span class='small-muted' style='margin-left:8px'> - ${escapeHtml(v.rule.note)}</span></div><div class='small-muted'>${v.hosts} host${v.hosts>1?'s':''}${v.eolHosts?` · ${v.eolHosts} EOL`:''}</div>`;
+          el.addEventListener('click', ()=> toggleFilter('port', v.portKey, el));
+          vulnList.appendChild(el);
+        });
+        eolOnly.forEach(v => {
+          const el = document.createElement('div');
+          el.className = 'list-item';
+          el.style.background = 'rgba(241,194,27,0.05)';
+          el.innerHTML = `<div><span class='port-badge' style='margin-left:6px'>${v.port}</span> <span class='small-muted' style='margin-left:8px'>EOL component detected</span></div><div class='small-muted'>${v.hosts} host${v.hosts>1?'s':''}</div>`;
+          el.addEventListener('click', ()=> toggleFilter('port', v.portKey, el));
+          vulnList.appendChild(el);
+        });
+        // disclaimer
+        const disc = document.createElement('div');
+        disc.className = 'small-muted';
+        disc.style.marginTop = '8px';
+        disc.style.fontStyle = 'italic';
+        disc.textContent = 'Heuristic exposure indicators — not a vulnerability scanner. Verify with a dedicated scanner.';
+        vulnList.appendChild(disc);
+      } else {
+        vulnSection.style.display = 'none';
+      }
+    }
+
+    function renderPorts(){ 
+      const portsTableBody = document.getElementById('portsTableBody');
+      if(!portsTableBody) return;
+      portsTableBody.innerHTML = ''; 
+      const dir = portsSort.dir === 'asc' ? 1 : -1;
+      const cmp = {
+        port: (a,b) => (parseInt(a.port,10)-parseInt(b.port,10))*dir,
+        proto: (a,b) => String(a.proto||'').localeCompare(String(b.proto||''))*dir,
+        service: (a,b) => String(a.serviceName||a.service||'').localeCompare(String(b.serviceName||b.service||''))*dir,
+        status: (a,b) => {
+          const activeA = a.open > 0 ? 1 : 0;
+          const activeB = b.open > 0 ? 1 : 0;
+          return (activeB - activeA)*dir;
+        },
+        count: (a,b) => ((a.open||0)-(b.open||0))*dir || ((a.total||0)-(b.total||0))*dir
+      }[portsSort.key] || ((a,b)=>0);
+      const arr = Object.values(DATA.ports)
+        .filter(p => showClosedPorts || p.open > 0)
+        .sort((a,b) => cmp(a,b) || (parseInt(a.port,10)-parseInt(b.port,10)));
+      arr.forEach(p => { 
+        const tr = document.createElement('tr'); 
+        // Short service name in the cell; full name|product|version in the tooltip
+        const serviceName = p.serviceName || p.service || '-';
+        const serviceFull = p.service || serviceName;
+        const isActive = p.open > 0;
+        const statusColor = isActive ? '#24a148' : '#da1e28';
+        const statusText = isActive ? 'Active' : 'Inactive';
+        tr.innerHTML = `
+          <td style="text-align:left"><span class="port-badge">${escapeHtml(p.port)}</span></td>
+          <td style="text-align:left">${escapeHtml(p.proto || 'tcp')}</td>
+          <td style="text-align:left" title="${escapeHtml(serviceFull)}">${escapeHtml(serviceName)}</td>
+          <td style="text-align:right"><span style="display:inline-flex;align-items:center;gap:6px;justify-content:flex-end"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${statusColor}"></span>${statusText}</span></td>
+          <td style="text-align:right">${p.open}</td>
+        `;
+        tr.style.cursor = 'pointer';
+        const isSelected = ACTIVE_PORT_KEYS.has(p.portKey);
+        if(isSelected) tr.style.background = 'rgba(15,98,254,0.12)';
+        tr.addEventListener('click', (ev)=>{
+          if(ev.target.closest('.svc-link')) return;
+          if(ACTIVE_PORT_KEYS.has(p.portKey)) ACTIVE_PORT_KEYS.delete(p.portKey);
+          else ACTIVE_PORT_KEYS.add(p.portKey);
+          renderPorts();
+          renderIPs();
+        });
+        portsTableBody.appendChild(tr);
+      }); 
+      // Update sort indicators
+      document.querySelectorAll('#portsTable thead th[data-sort]').forEach(th => {
+        const key = th.getAttribute('data-sort');
+        const ind = th.querySelector('.sort-ind');
+        if(key === portsSort.key){
+          th.setAttribute('aria-sort', portsSort.dir === 'asc' ? 'ascending' : 'descending');
+          if(ind) ind.textContent = portsSort.dir === 'asc' ? '▲' : '▼';
+        } else {
+          th.setAttribute('aria-sort', 'none');
+          if(ind) ind.textContent = '';
+        }
+      });
+    }
+
+    function renderServicesChart(){ 
+      // Safety check
+      if(!servicesChartCanvas){
+        console.error('servicesChartCanvas element not found');
+        return;
+      }
+      if(typeof Chart === 'undefined'){
+        console.error('Chart.js not available — skipping services chart');
+        return;
+      }
+      
+      // Destroy existing chart
+      if(servicesChart){ servicesChart.destroy(); servicesChart = null; }
+      if(vendorsChart){ vendorsChart.destroy(); vendorsChart = null; }
+
+      const arr = Object.values(DATA.services).sort((a,b)=> b.count - a.count).slice(0,10);
+      if(arr.length === 0) return;
+      
+      const labels = arr.map(s => s.name.length > 25 ? s.name.substring(0, 25) + '...' : s.name);
+      const values = arr.map(s => s.count);
+      
+      const ctx = servicesChartCanvas.getContext('2d');
+      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      const textColor = isDark ? '#f4f4f4' : '#161616';
+      const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+      
+      // Create beautiful gradient colors for each bar
+      const gradients = values.map((_, idx) => {
+        const gradient = ctx.createLinearGradient(0, 0, 400, 0);
+        const hue = (idx * 30) % 360; // Vary colors across spectrum
+        gradient.addColorStop(0, `hsla(${hue}, 70%, 60%, 0.9)`);
+        gradient.addColorStop(1, `hsla(${hue + 30}, 70%, 50%, 0.7)`);
+        return gradient;
+      });
+      
+      servicesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Service Count',
+            data: values,
+            backgroundColor: gradients,
+            borderWidth: 0,
+            barPercentage: 0.9,
+            categoryPercentage: 0.9
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: prefersReducedMotion ? 0 : 600 },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: isDark ? '#262626' : '#f4f4f4',
+              titleColor: textColor,
+              bodyColor: textColor,
+              borderColor: gridColor,
+              borderWidth: 1,
+              callbacks: {
+                label: (ctx) => `${arr[ctx.dataIndex].name}: ${ctx.parsed.x} hosts`
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: { 
+                color: textColor,
+                font: { size: 11, weight: '500' },
+                stepSize: 1
+              },
+              grid: { 
+                color: gridColor,
+                drawBorder: false
+              }
+            },
+            y: {
+              ticks: { 
+                color: textColor,
+                font: { size: 14, weight: '500' }
+              },
+              grid: { 
+                display: false
+              }
+            }
+          },
+          onClick: (event, elements) => {
+            if(elements.length > 0){
+              const index = elements[0].index;
+              const serviceName = arr[index].name;
+              toggleFilter('service', serviceName);
+            }
+          }
+        }
+      });
+    }
+
+    function renderPortsChart(){
+      if(!servicesChartCanvas) return;
+      if(servicesChart){ servicesChart.destroy(); servicesChart = null; }
+      if(vendorsChart){ vendorsChart.destroy(); vendorsChart = null; }
+      const arr = Object.values(DATA.portNumbers || {}).sort((a,b) => (b.openHosts||[]).length - (a.openHosts||[]).length).slice(0,10);
+      if(arr.length === 0) return;
+      const labels = arr.map(p => String(p.port));
+      const values = arr.map(p => (p.openHosts||[]).length);
+      const ctx = servicesChartCanvas.getContext('2d');
+      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      const textColor = isDark ? '#f4f4f4' : '#161616';
+      const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+      const gradients = values.map((_, idx) => {
+        const gradient = ctx.createLinearGradient(0, 0, 400, 0);
+        const hue = (idx * 30) % 360;
+        gradient.addColorStop(0, `hsla(${hue}, 70%, 60%, 0.9)`);
+        gradient.addColorStop(1, `hsla(${hue + 30}, 70%, 50%, 0.7)`);
+        return gradient;
+      });
+      servicesChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets: [{ label: 'Open hosts', data: values, backgroundColor: gradients, borderWidth: 0, barPercentage: 0.9, categoryPercentage: 0.9 }] },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: prefersReducedMotion ? 0 : 600 },
+          plugins: {
+            legend: { display: false },
+            tooltip: { backgroundColor: isDark ? '#262626' : '#f4f4f4', titleColor: textColor, bodyColor: textColor, borderColor: gridColor, borderWidth: 1,
+              callbacks: { label: (ctx) => `Port ${arr[ctx.dataIndex].port}: ${ctx.parsed.x} host${ctx.parsed.x !== 1 ? 's' : ''}` } }
+          },
+          scales: {
+            x: { beginAtZero: true, ticks: { color: textColor, font: { size: 11, weight: '500' }, stepSize: 1 }, grid: { color: gridColor, drawBorder: false } },
+            y: { ticks: { color: textColor, font: { size: 14, weight: '500' } }, grid: { display: false } }
+          },
+          onClick: (event, elements) => {
+            if(elements.length > 0){
+              const index = elements[0].index;
+              toggleFilter('portNum', String(arr[index].port));
+            }
+          }
+        }
+      });
+    }
+
+    function renderVendorsChart(){
+      const canvas = servicesChartCanvas;
+      if(!canvas) return;
+      if(typeof Chart === 'undefined') return;
+      if(servicesChart){ servicesChart.destroy(); servicesChart = null; }
+      if(vendorsChart){ vendorsChart.destroy(); vendorsChart = null; }
+
+      // Aggregate hosts by MAC vendor
+      const counts = {};
+      Object.values(DATA.ips||{}).forEach(e => {
+        const v = e.vendor || 'Unknown';
+        counts[v] = (counts[v]||0) + 1;
+      });
+      const entries = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+      if(entries.length === 0) return;
+
+      const labels = entries.map(([v]) => v);
+      const values = entries.map(([,c]) => c);
+
+      const ctx = canvas.getContext('2d');
+      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      const textColor = isDark ? '#f4f4f4' : '#161616';
+
+      vendorsChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Hosts',
+            data: values,
+            backgroundColor: values.map((_, i) => {
+              const h = (i * 45) % 360;
+              return `hsla(${h}, 70%, 55%, 0.9)`;
+            }),
+            borderColor: isDark ? '#262626' : '#f4f4f4',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: prefersReducedMotion ? 0 : 600 },
+          plugins: {
+            legend: { position: 'bottom', labels: { color: textColor, font: { size: 12 } } },
+            tooltip: {
+              backgroundColor: isDark ? '#262626' : '#f4f4f4',
+              titleColor: textColor,
+              bodyColor: textColor,
+              borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+              borderWidth: 1,
+              callbacks: {
+                label: (ctx) => `${ctx.label}: ${ctx.parsed} host${ctx.parsed !== 1 ? 's' : ''}`
+              }
+            },
+            title: {
+              display: true,
+              text: 'Hosts by MAC vendor',
+              color: textColor,
+              font: { size: 14, weight: '600' }
+            }
+          },
+          onClick: (event, elements) => {
+            if(elements.length > 0){
+              const index = elements[0].index;
+              const vendor = labels[index];
+              toggleFilter('vendor', vendor);
+            }
+          }
+        }
+      });
+    }
+
+    function renderProductsChart(){
+      const canvas = servicesChartCanvas;
+      if(!canvas) return;
+      if(typeof Chart === 'undefined') return;
+      if(servicesChart){ servicesChart.destroy(); servicesChart = null; }
+      if(vendorsChart){ vendorsChart.destroy(); vendorsChart = null; }
+
+      // Aggregate distinct hosts by product (exclude ports with no product)
+      const productHosts = {};
+      Object.values(DATA.ips||{}).forEach(e => {
+        (e.ports||[]).forEach(p => {
+          if(p.state !== 'open' || !p.product) return;
+          if(!productHosts[p.product]) productHosts[p.product] = new Set();
+          productHosts[p.product].add(e.ip);
+        });
+      });
+      const entries = Object.entries(productHosts)
+        .map(([product, ips]) => [product, ips.size])
+        .sort((a,b) => b[1] - a[1]);
+      if(entries.length === 0) return;
+
+      const labels = entries.map(([p]) => p.length > 25 ? p.substring(0, 25) + '...' : p);
+      const values = entries.map(([,c]) => c);
+
+      const ctx = canvas.getContext('2d');
+      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      const textColor = isDark ? '#f4f4f4' : '#161616';
+
+      vendorsChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Hosts',
+            data: values,
+            backgroundColor: values.map((_, i) => {
+              const h = (i * 45) % 360;
+              return `hsla(${h}, 70%, 55%, 0.9)`;
+            }),
+            borderColor: isDark ? '#262626' : '#f4f4f4',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: prefersReducedMotion ? 0 : 600 },
+          plugins: {
+            legend: { position: 'bottom', labels: { color: textColor, font: { size: 12 } } },
+            tooltip: {
+              backgroundColor: isDark ? '#262626' : '#f4f4f4',
+              titleColor: textColor,
+              bodyColor: textColor,
+              borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+              borderWidth: 1,
+              callbacks: {
+                label: (ctx) => `${ctx.label}: ${ctx.parsed} host${ctx.parsed !== 1 ? 's' : ''}`
+              }
+            },
+            title: {
+              display: true,
+              text: 'Products by Host Count',
+              color: textColor,
+              font: { size: 14, weight: '600' }
+            }
+          },
+          onClick: (event, elements) => {
+            if(elements.length > 0){
+              const index = elements[0].index;
+              const productName = entries[index][0];
+              toggleFilter('product', productName);
+            }
+          }
+        }
+      });
+    }
+
+    function renderServices(){
+      if(chartTab === 'services') renderServicesChart();
+      else if(chartTab === 'ports') renderPortsChart();
+      else if(chartTab === 'vendors') renderVendorsChart();
+      else renderProductsChart();
+      if(chartTabServices){ chartTabServices.style.background = chartTab === 'services' ? 'var(--interactive)' : 'transparent'; chartTabServices.style.color = chartTab === 'services' ? '#fff' : 'var(--text-01)'; }
+      if(chartTabPorts){ chartTabPorts.style.background = chartTab === 'ports' ? 'var(--interactive)' : 'transparent'; chartTabPorts.style.color = chartTab === 'ports' ? '#fff' : 'var(--text-01)'; }
+      if(chartTabVendors){ chartTabVendors.style.background = chartTab === 'vendors' ? 'var(--interactive)' : 'transparent'; chartTabVendors.style.color = chartTab === 'vendors' ? '#fff' : 'var(--text-01)'; }
+      if(chartTabProducts){ chartTabProducts.style.background = chartTab === 'products' ? 'var(--interactive)' : 'transparent'; chartTabProducts.style.color = chartTab === 'products' ? '#fff' : 'var(--text-01)'; }
+      if(chartTitle) chartTitle.textContent = chartTab === 'services' ? 'Top 10 Services' : chartTab === 'ports' ? 'Top 10 Open Ports' : chartTab === 'vendors' ? 'MAC Vendors' : 'Products';
+    }
+    function renderIPs(){
+      if(!ipAccordion || !searchInput) return;
+      ipAccordion.innerHTML = '';
+      const q = (searchInput.value||'').trim().toLowerCase();
+      const allKeys = Object.keys(DATA.ips).sort(compareIp);
+      const filtered = [];
+      allKeys.forEach((ip) => {
+        const e = DATA.ips[ip];
+
+        // apply active filter
+        if(ACTIVE_PORT_KEYS.size > 0){
+          const ok = e.ports.some(p => ACTIVE_PORT_KEYS.has(p.portKey) && p.state === 'open'); if(!ok) return;
+        }
+        if(ACTIVE_FILTER.type === 'port'){
+          const ok = e.ports.some(p => p.portKey === ACTIVE_FILTER.key && p.state === 'open'); if(!ok) return;
+        }
+        if(ACTIVE_FILTER.type === 'service'){
+          const ok = e.ports.some(p => p.svcKey === ACTIVE_FILTER.key && p.state === 'open'); if(!ok) return;
+        }
+        if(ACTIVE_FILTER.type === 'portNum'){
+          const ok = e.ports.some(p => p.port === ACTIVE_FILTER.key && p.state === 'open'); if(!ok) return;
+        }
+        if(ACTIVE_FILTER.type === 'vendor'){
+          const ok = (e.vendor || 'Unknown') === ACTIVE_FILTER.key; if(!ok) return;
+        }
+        if(ACTIVE_FILTER.type === 'product'){
+          const ok = e.ports.some(p => p.product === ACTIVE_FILTER.key && p.state === 'open'); if(!ok) return;
+        }
+
+        // Hide hosts with zero open ports
+        if(!e.ports.some(p => p.state === 'open')) return;
+
+        // Enhanced search across all fields
+        if(q){
+          let match = false;
+          match = ip.includes(q) || e.hostnames.join(' ').toLowerCase().includes(q) || (e.mac||'').toLowerCase().includes(q) || (e.vendor||'').toLowerCase().includes(q) || e.ports.some(p => p.portKey.includes(q) || String(p.port || '').includes(q) || p.svcKey.toLowerCase().includes(q) || p.svc.toLowerCase().includes(q) || p.product.toLowerCase().includes(q) || p.version.toLowerCase().includes(q));
+          if(!match) return;
+        }
+        filtered.push(ip);
+      });
+
+      const sortFn = {
+        ip: (a,b) => compareIp(a,b),
+        open: (a,b) => (DATA.ips[b].ports.filter(p=>p.state==='open').length - DATA.ips[a].ports.filter(p=>p.state==='open').length) || compareIp(a,b),
+        filtered: (a,b) => {
+          if(ACTIVE_PORT_KEYS.size === 0) return compareIp(a,b);
+          const aMatch = DATA.ips[a].ports.filter(p => p.state === 'open' && ACTIVE_PORT_KEYS.has(p.portKey)).length;
+          const bMatch = DATA.ips[b].ports.filter(p => p.state === 'open' && ACTIVE_PORT_KEYS.has(p.portKey)).length;
+          return bMatch - aMatch || compareIp(a,b);
+        },
+        host: (a,b) => (DATA.ips[a].hostnames[0] || a).localeCompare(DATA.ips[b].hostnames[0] || b)
+      }[inventorySortKey] || compareIp;
+      filtered.sort(sortFn);
+
+      let matchCount = filtered.length;
+      VISIBLE_IPS = filtered.slice();
+
+      function buildBody(item){
+        if(item._built) return;
+        const e = item._entry;
+        const inner = item._inner;
+        const tableWrapper = item._tableWrapper;
+        inner.innerHTML = '';
+        const allOpenPorts = e.ports.filter(p => p.state === 'open').sort((a,b) => parseInt(a.port,10) - parseInt(b.port,10));
+        const ports = ACTIVE_PORT_KEYS.size > 0 && !showAllPorts
+          ? allOpenPorts.filter(p => ACTIVE_PORT_KEYS.has(p.portKey))
+          : allOpenPorts;
+        const rows = ports.map((p, idx) => {
+          const stateClass = p.state === 'open' ? 'port-state-open' : (p.state === 'filtered' ? 'port-state-filtered' : 'port-state-closed');
+          const detailHtml = renderPortDetailsHtml(p);
+          return `<tr class="port-row" data-port-idx="${idx}" style="cursor:pointer"><td><span class='port-badge'>${escapeHtml(p.portKey)}</span></td><td class='small-muted ${stateClass}'>${escapeHtml(p.state)}</td><td><a href='#' class='svc-link' data-svc='${escapeHtml(encodeURIComponent(p.svcKey))}'>${escapeHtml(p.svc)}</a></td><td class='small-muted'>${escapeHtml(p.product)}</td><td class='small-muted'>${escapeHtml(p.version)}</td></tr>
+          <tr class="port-detail" data-port-idx="${idx}" style="display:none"><td colspan="5">${detailHtml}</td></tr>`;
+        }).join('');
+        tableWrapper.innerHTML = `<table class='data-table' role='table'><thead><tr><th>Port</th><th>State</th><th>Service</th><th>Product</th><th>Version</th></tr></thead><tbody>${rows}</tbody></table>`;
+        inner.appendChild(tableWrapper);
+        let extras = '';
+        if(e.extraports && e.extraports.length){
+          extras += `<div class="small-muted" style="margin-top:8px">Extra ports: ` + e.extraports.map(x => `${escapeHtml(x.state)} × ${x.count}`).join(', ') + `</div>`;
+        }
+        if(e.scripts && e.scripts.length){
+          extras += `<div style="margin-top:8px">` + e.scripts.map(s => `<details><summary class="small-muted">${escapeHtml(s.id)}</summary><pre class="mono small-muted" style="white-space:pre-wrap;margin:4px 0">${escapeHtml(s.output)}</pre></details>`).join('') + `</div>`;
+        }
+        if(extras){
+          const extraDiv = document.createElement('div');
+          extraDiv.innerHTML = extras;
+          inner.appendChild(extraDiv);
+        }
+        Array.from(tableWrapper.querySelectorAll('.svc-link')).forEach(a => a.addEventListener('click', ev=>{ ev.preventDefault(); const svc = decodeURIComponent(a.getAttribute('data-svc')); toggleFilter('service', svc); }));
+        item._built = true;
+      }
+
+      function renderOne(ip){
+        const e = DATA.ips[ip];
+        const item = document.createElement('div'); item.className = 'accordion-item';
+        const header = document.createElement('div'); header.className = 'accordion-header';
+        const left = document.createElement('div'); left.className = 'accordion-left';
+        const right = document.createElement('div'); right.className = 'accordion-right accordion-actions';
+        const toggleBtn = document.createElement('button'); toggleBtn.className = 'accordion-button'; toggleBtn.setAttribute('aria-expanded','false'); toggleBtn.setAttribute('aria-controls', 'body-' + ip.replace(/[^a-z0-9]/gi,'_'));
+        const openCount = e.ports.filter(p => p.state === 'open').length;
+        const uniqueOpenCount = new Set(e.ports.filter(p => p.state === 'open').map(p => p.port)).size;
+        const maxSev = hostMaxSeverity(e);
+        const riskBadge = '';
+        const macLine = e.mac ? ` <div class="small-muted" style="font-size:11px;margin-top:2px">MAC ${escapeHtml(e.mac)}${e.vendor ? ' · ' + escapeHtml(e.vendor) : ''}</div>` : '';
+        toggleBtn.innerHTML = `<div><strong>${escapeHtml(ip)}</strong>${ e.hostnames.length ? ' — ' + escapeHtml(e.hostnames.join(', ')) : '' }${ e.os && e.os.length ? ' <span class="small-muted">[' + escapeHtml(e.os[0].name) + ']</span>' : '' }${riskBadge}${macLine}</div><div class='small-muted mono'>${openCount} open <span class="shown-count">${openCount} shown</span></div>`;
+        item._shownCountEl = toggleBtn.querySelector('.shown-count');
+        left.appendChild(toggleBtn);
+        const copyBtn = document.createElement('button'); 
+        copyBtn.className = 'btn-ghost'; 
+        copyBtn.setAttribute('aria-label','Copy IP'); 
+        copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><path d="M6 11C6 8.17157 6 6.75736 6.87868 5.87868C7.75736 5 9.17157 5 12 5H15C17.8284 5 19.2426 5 20.1213 5.87868C21 6.75736 21 8.17157 21 11V16C21 18.8284 21 20.2426 20.1213 21.1213C19.2426 22 17.8284 22 15 22H12C9.17157 22 7.75736 22 6.87868 21.1213C6 20.2426 6 18.8284 6 16V11Z"/><path d="M6 19C4.34315 19 3 17.6569 3 16V10C3 6.22876 3 4.34315 4.17157 3.17157C5.34315 2 7.22876 2 11 2H15C16.6569 2 18 3.34315 18 5"/></svg> Copy IP';
+        const viewBtn = document.createElement('button');
+        viewBtn.className = 'btn-ghost';
+        viewBtn.setAttribute('aria-label','View raw');
+        viewBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="14" height="14"><path d="M15.5 9L15.6716 9.17157C17.0049 10.5049 17.6716 11.1716 17.6716 12C17.6716 12.8284 17.0049 13.4951 15.6716 14.8284L15.5 15"/><path d="M13.2939 7.17041L11.9998 12L10.7058 16.8297"/><path d="M8.50019 9L8.32861 9.17157C6.99528 10.5049 6.32861 11.1716 6.32861 12C6.32861 12.8284 6.99528 13.4951 8.32861 14.8284L8.50019 15"/><path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z"/></svg> View raw';
+        right.appendChild(copyBtn);
+        const fmtBtn = document.createElement('button');
+        fmtBtn.className = 'btn-ghost';
+        fmtBtn.setAttribute('aria-label','View formatted');
+        fmtBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="14" height="14"><path d="M3 10C3 6.22876 3 4.34315 4.17157 3.17157C5.34315 2 7.22876 2 11 2H13C16.7712 2 18.6569 2 19.8284 3.17157C21 4.34315 21 6.22876 21 10V14C21 17.7712 21 19.6569 19.8284 20.8284C18.6569 22 16.7712 22 13 22H11C7.22876 22 5.34315 22 4.17157 20.8284C3 19.6569 3 17.7712 3 14V10Z"/><path d="M8 12H16"/><path d="M8 8H16"/><path d="M8 16H13"/></svg> View formatted';
+        right.appendChild(fmtBtn);
+        right.appendChild(viewBtn);
+        header.appendChild(left); header.appendChild(right);
+        const body = document.createElement('div'); body.className = 'accordion-body'; body.id = 'body-' + ip.replace(/[^a-z0-9]/gi,'_'); body.setAttribute('role','region');
+        const inner = document.createElement('div'); inner.className = 'body-inner';
+        const tableWrapper = document.createElement('div'); tableWrapper.className = 'table-wrapper';
+        tableWrapper.addEventListener('click', (ev) => {
+          const row = ev.target.closest('.port-row');
+          if(!row || ev.target.closest('.svc-link')) return;
+          const idx = row.getAttribute('data-port-idx');
+          const detail = tableWrapper.querySelector(`.port-detail[data-port-idx="${idx}"]`);
+          if(detail) detail.style.display = detail.style.display === 'none' ? '' : 'none';
+          // Re-measure the host body so expanded script output is not clipped by max-height.
+          const bodyEl = item.querySelector('.accordion-body');
+          const innerEl = item.querySelector('.body-inner');
+          const btnEl = item.querySelector('.accordion-button');
+          if(bodyEl && innerEl && btnEl && btnEl.getAttribute('aria-expanded') === 'true'){
+            bodyEl.style.maxHeight = innerEl.scrollHeight + 24 + 'px';
+          }
+          syncToggleLabels();
+        });
+        body.appendChild(inner);
+        item.appendChild(header); item.appendChild(body); ipAccordion.appendChild(item);
+        item._entry = e;
+        item._allOpenPorts = e.ports.filter(p => p.state === 'open');
+        item._inner = inner;
+        item._tableWrapper = tableWrapper;
+        item._built = false;
+        item._buildBody = () => buildBody(item);
+        toggleBtn.addEventListener('click', ()=>{
+          const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+          toggleBtn.setAttribute('aria-expanded', String(!expanded));
+          if(expanded){
+            body.style.maxHeight = '0';
+          } else {
+            buildBody(item);
+            updateShownCounts();
+            body.style.maxHeight = inner.scrollHeight + 24 + 'px';
+            setTimeout(()=>{ 
+              if(toggleBtn.getAttribute('aria-expanded') === 'true') body.style.maxHeight = inner.scrollHeight + 24 + 'px';
+              const table = tableWrapper.querySelector('.data-table');
+              if(table && table.scrollWidth > tableWrapper.clientWidth){
+                tableWrapper.classList.add('has-scroll');
+              }
+            }, 300);
+          }
+        });
+        copyBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); copyText(ip, 'Copied ' + ip); });
+        viewBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); openRawModal(ip, e.raw); });
+        fmtBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); openFormattedModal(ip, e); });
+      }
+
+      const BATCH = 300;
+      let rendered = 0;
+      function renderBatch(start){
+        const end = Math.min(start + BATCH, filtered.length);
+        for(let i = start; i < end; i++) renderOne(filtered[i]);
+        rendered = end;
+        const existing = ipAccordion.querySelector('.show-more-btn');
+        if(existing) existing.remove();
+        if(rendered < filtered.length){
+          const btn = document.createElement('button');
+          btn.className = 'btn-ghost show-more-btn';
+          btn.style.width = '100%';
+          btn.style.marginTop = '8px';
+          btn.textContent = `Show more (${filtered.length - rendered} remaining)`;
+          btn.addEventListener('click', ()=>{ btn.remove(); renderBatch(rendered); });
+          ipAccordion.appendChild(btn);
+        }
+      }
+      renderBatch(0);
+      updateShownCounts();
+
+      // Port multi-filter chips
+      const pfc = document.getElementById('portFilterChips');
+      if(pfc){
+        if(ACTIVE_PORT_KEYS.size > 0){
+          pfc.style.display = 'block';
+          pfc.innerHTML = Array.from(ACTIVE_PORT_KEYS).map(k => `<button class="btn-ghost" style="padding:2px 8px;font-size:11px;margin-right:4px" data-pk="${escapeHtml(k)}">${escapeHtml(k)} ✕</button>`).join('') + ` <button class="btn-ghost" style="padding:2px 8px;font-size:11px" id="clearPortFilter">Clear ports</button> <button class="btn-ghost" style="padding:2px 8px;font-size:11px" id="toggleAllPortsBtn" title="Show/hide ports that don't match the current filter">${showAllPorts ? 'Show Filtered Ports' : 'Show All Ports'}</button><span class="small-muted" style="margin-left:10px">${matchCount} host${matchCount !== 1 ? 's' : ''} shown</span>`;
+          pfc.querySelectorAll('button[data-pk]').forEach(b => {
+            b.addEventListener('click', ()=>{ ACTIVE_PORT_KEYS.delete(b.getAttribute('data-pk')); if(ACTIVE_PORT_KEYS.size === 0) showAllPorts = false; renderPorts(); renderIPs(); });
+          });
+          const cpf = document.getElementById('clearPortFilter');
+          if(cpf) cpf.addEventListener('click', ()=>{ ACTIVE_PORT_KEYS.clear(); showAllPorts = false; renderPorts(); renderIPs(); });
+          const tapBtn = document.getElementById('toggleAllPortsBtn');
+          if(tapBtn) tapBtn.addEventListener('click', ()=>{
+            showAllPorts = !showAllPorts;
+            tapBtn.textContent = showAllPorts ? 'Show Filtered Ports' : 'Show All Ports';
+            document.querySelectorAll('.accordion-item').forEach(item => {
+              if(item._built){
+                item._built = false;
+                item._buildBody();
+                const bodyEl = item.querySelector('.accordion-body');
+                const innerEl = item.querySelector('.body-inner');
+                const btnEl = item.querySelector('.accordion-button');
+                if(bodyEl && innerEl && btnEl && btnEl.getAttribute('aria-expanded') === 'true'){
+                  bodyEl.style.maxHeight = innerEl.scrollHeight + 24 + 'px';
+                }
+              }
+            });
+            updateShownCounts();
+          });
+        } else {
+          pfc.style.display = 'none';
+        }
+      }
+
+      // Filter chip for single active filters
+      if(filterChip){
+        if(ACTIVE_FILTER.type){
+          filterChip.style.display = 'block';
+          filterChip.innerHTML = `Filter: ${escapeHtml(ACTIVE_FILTER.type)}=${escapeHtml(ACTIVE_FILTER.key)} · ${matchCount} host${matchCount !== 1 ? 's' : ''} <button class="btn-ghost" style="padding:2px 6px;font-size:11px" id="clearFilterChip">✕</button>`;
+          const cb = document.getElementById('clearFilterChip');
+          if(cb) cb.addEventListener('click', ()=>{ ACTIVE_FILTER={type:null,key:null}; renderIPs(); });
+        } else {
+          filterChip.style.display = 'none';
+        }
+      }
+
+      // Update search results display
+      if(searchResults && clearSearch){
+        if(q){
+          searchResults.style.display = 'block';
+          searchResults.textContent = `Found ${matchCount} host${matchCount !== 1 ? 's' : ''} matching "${q}"`;
+          clearSearch.style.display = 'inline-block';
+        } else {
+          searchResults.style.display = 'none';
+          clearSearch.style.display = 'none';
+        }
+      }
+
+      // bind service links
+      Array.from(document.querySelectorAll('.svc-link')).forEach(a => a.addEventListener('click', ev=>{ ev.preventDefault(); const svc = decodeURIComponent(a.getAttribute('data-svc')); toggleFilter('service', svc); }));
+    }
+
+    // Clipboard with fallback for file://, insecure contexts and permission denials
+    async function copyText(text, okMsg){
+      let copied = false;
+      if(navigator.clipboard && window.isSecureContext){
+        try {
+          await navigator.clipboard.writeText(text);
+          copied = true;
+        } catch(_) { /* fall through to execCommand */ }
+      }
+      if(!copied){
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.setAttribute('readonly','');
+          ta.style.position = 'fixed';
+          ta.style.top = '-1000px';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          copied = document.execCommand('copy');
+          ta.remove();
+        } catch(err){
+          console.error('Copy fallback failed:', err);
+          copied = false;
+        }
+      }
+      if(copied){ if(okMsg) toast(okMsg); }
+      else { toast('Copy failed — clipboard unavailable'); }
+    }
+
+    // small toast
+    function toast(msg){
+      let container = document.getElementById('toastContainer');
+      if(!container){
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.setAttribute('role','status');
+        container.setAttribute('aria-live','polite');
+        container.style.cssText = 'position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:9999;pointer-events:none;max-width:320px';
+        document.body.appendChild(container);
+      }
+      const t = document.createElement('div');
+      t.textContent = msg;
+      t.style.cssText = 'background:rgba(0,0,0,0.75);color:white;padding:8px 12px;border:1px solid var(--border);pointer-events:auto;font-size:13px';
+      container.appendChild(t);
+      setTimeout(()=> t.remove(), 1800);
+    }
+
+    // Validate an uploaded file before reading it
+    function fileOk(file){
+      if(!file) return false;
+      if(!file.name.toLowerCase().endsWith('.xml')){ toast('Please select an .xml file'); return false; }
+      if(file.size > 50 * 1024 * 1024){ toast('File too large (max 50 MB)'); return false; }
+      return true;
+    }
+
+    function toggleFilter(type, key, el){ 
+      ACTIVE_PORT_KEYS.clear();
+      if(ACTIVE_FILTER.type===type && ACTIVE_FILTER.key===key){ 
+        ACTIVE_FILTER={type:null,key:null}; 
+        document.querySelectorAll('.list-item.active').forEach(x=>x.classList.remove('active')); 
+        renderIPs(); 
+        toast('Filter cleared'); 
+        return; 
+      } 
+      ACTIVE_FILTER={type,key}; 
+      document.querySelectorAll('.list-item').forEach(x=>x.classList.remove('active')); 
+      if(el) el.classList.add('active'); 
+      renderIPs(); 
+      toast('Filter: '+type+'='+key); 
+      
+      // Scroll to IP inventory section when filtering by port
+      if(type === 'port' || type === 'portNum') {
+        const ipInventoryPanel = document.getElementById('ip-inventory-panel');
+        if(ipInventoryPanel) {
+          setTimeout(() => {
+            ipInventoryPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }
+      }
+    }
+
+    // Export handlers
+    exportJson.addEventListener('click', ()=>{ 
+      const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'}); 
+      const url = URL.createObjectURL(blob); 
+      const a = document.createElement('a'); 
+      a.href=url; 
+      a.download='nmap_aggregated.json'; 
+      a.click(); 
+      URL.revokeObjectURL(url); 
+      toast('Exported JSON');
+    });
+
+    exportCsv.addEventListener('click', ()=>{
+      const rows = [['ip','port','proto','state','service','product','version','risk']];
+      Object.values(DATA.ips).forEach(ip=> ip.ports.forEach(p=> {
+        const portNum = parseInt(p.port,10);
+        const rule = RISK_RULES.find(r => r.port === portNum && r.proto === (p.proto||'tcp'));
+        let sev = rule ? rule.severity : '';
+        if(rule && Array.isArray(p.scripts) && p.scripts.some(s => NSE_CRITICAL.includes(s.id) || (rule.scripts||[]).includes(s.id))) sev = 'critical';
+        const eol = isEol(p.product, p.version);
+        if(eol) sev = sev ? sev + '+eol' : 'eol';
+        rows.push([ip.ip,p.port,p.proto,p.state,p.svc,p.product,p.version,sev]);
+      }));
+      const csv = rows.map(r=> r.map(cell=> '"'+String(cell||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); 
+      a.href = url; 
+      a.download = 'nmap_aggregated.csv'; 
+      a.click(); 
+      URL.revokeObjectURL(url);
+      toast('Exported CSV');
+    });
+
+    exportPdf.addEventListener('click', async ()=>{
+      showLoading();
+      if(!window.jspdf){
+        try {
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+            s.onload = resolve;
+            s.onerror = () => reject(new Error('Failed to load jsPDF'));
+            document.head.appendChild(s);
+          });
+        } catch(e) {
+          hideLoading();
+          toast('Failed to load PDF library');
+          return;
+        }
+      }
+      setTimeout(()=>{
+        const {jsPDF} = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18);
+        doc.text('Nmap Scan Report', 14, 20);
+        
+        doc.setFontSize(10);
+        let y = 30;
+        doc.text(`File: ${currentFileName}`, 14, y);
+        y += 6;
+        if(DATA.scanInfo.nmapVersion) {
+          doc.text(`Nmap Version: ${DATA.scanInfo.nmapVersion}`, 14, y);
+          y += 6;
+        }
+        if(DATA.scanInfo.startTime) {
+          doc.text(`Scan Time: ${DATA.scanInfo.startTime}`, 14, y);
+          y += 6;
+        }
+        
+        y += 4;
+        doc.setFontSize(12);
+        doc.text('Summary', 14, y);
+        y += 6;
+        doc.setFontSize(10);
+        doc.text(`Total Hosts: ${DATA.hostCount}`, 14, y);
+        y += 6;
+        doc.text(`Unique Ports: ${Object.keys(DATA.ports).length}`, 14, y);
+        y += 6;
+        doc.text(`Services: ${new Set(Object.values(DATA.services).map(s => s.svcName || s.name)).size}`, 14, y);
+        y += 6;
+        doc.text(`Open Ports: ${Object.values(DATA.ports).reduce((a,b)=> a + (b.open||0), 0)}`, 14, y);
+        y += 10;
+        
+        doc.setFontSize(12);
+        doc.text('Top Ports', 14, y);
+        y += 6;
+        doc.setFontSize(9);
+        const topPorts = Object.values(DATA.ports).sort((a,b)=> b.open - a.open).slice(0,10);
+        topPorts.forEach(p => {
+          if(y > 270){ doc.addPage(); y = 20; }
+          doc.text(`${p.portKey}: ${p.open} open (${p.total} total)`, 14, y);
+          y += 5;
+        });
+        
+        y += 5;
+        doc.setFontSize(12);
+        doc.text('Vulnerabilities', 14, y);
+        y += 6;
+        doc.setFontSize(9);
+        const vulnPorts = [];
+        Object.values(DATA.ports).forEach(p => {
+          const portNum = parseInt(p.port);
+          const rule = RISK_RULES.find(r => r.port === portNum && r.proto === (p.proto||'tcp'));
+          if(rule && p.open > 0){
+            let sev = rule.severity;
+            const hasCrit = (p.ipList||[]).some(ip => {
+              const e = DATA.ips[ip];
+              return e && e.ports.some(pp => pp.portKey === p.portKey && Array.isArray(pp.scripts) && pp.scripts.some(s => NSE_CRITICAL.includes(s.id) || (rule.scripts||[]).includes(s.id)));
+            });
+            if(hasCrit) sev = 'critical';
+            vulnPorts.push({port: portNum, label: rule.label, note: rule.note, sev, count: p.open});
+          }
+        });
+        if(vulnPorts.length > 0){
+          vulnPorts.sort((a,b)=> (SEVERITY_WEIGHT[b.sev]||0)-(SEVERITY_WEIGHT[a.sev]||0) || b.count - a.count).forEach(v => {
+            if(y > 270){ doc.addPage(); y = 20; }
+            doc.text(`${v.sev.toUpperCase()} - Port ${v.port} (${v.label}): ${v.note} - ${v.count} host${v.count>1?'s':''}`, 14, y);
+            y += 5;
+          });
+        } else {
+          doc.text('No heuristic risks detected', 14, y);
+        }
+        
+        doc.save('nmap_report.pdf');
+        hideLoading();
+        toast('Exported PDF');
+      }, 100);
+    });
+
+    copyIPs.addEventListener('click', ()=>{ 
+      const ips = VISIBLE_IPS.slice();
+      if(!ips.length){ toast('No IPs to copy'); return; }
+      copyText(ips.join('\n'), `Copied ${ips.length} IP${ips.length === 1 ? '' : 's'}`);
+    });
+
+    // Toggle closed ports button
+    toggleClosedPorts.addEventListener('click', ()=>{
+      showClosedPorts = !showClosedPorts;
+      const icon = '<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 13A6 6 0 118 2a6 6 0 010 12zm3-6.5v1H5v-1h6z"/></svg>';
+      toggleClosedPorts.innerHTML = showClosedPorts ? icon + ' Hide Closed' : icon + ' Show Closed';
+      renderPorts();
+    });
+
+    clearData.addEventListener('click', ()=>{
+      openModalEl(document.getElementById('clearConfirmModal'), document.getElementById('cancelClearBtn'));
+    });
+  
+    // ============================================================================
+    // DRAG AND DROP - Drop Zone Area
+    // ============================================================================
+    dropZone.addEventListener('dragover', (e)=>{
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+    dropZone.addEventListener('dragleave', ()=>{
+      dropZone.classList.remove('drag-over');
+    });
+    dropZone.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      log('ðŸ“‚ File dropped on drop zone');
+      const f = e.dataTransfer.files[0];
+      if(!f) return;
+      const fr = new FileReader();
+      fr.onload = ()=> {
+        log('âœ… Dropped file read, parsing:', f.name);
+        parseNmapXml(fr.result, f.name);
+      };
+      fr.readAsText(f);
+    });
+
+    // ============================================================================
+    // GLOBAL DRAG AND DROP - Entire Dashboard
+    // Allows dropping files anywhere on the page
+    // ============================================================================
+    const container = document.querySelector('.container');
+    let dragCounter = 0;
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      document.body.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+
+    document.body.addEventListener('dragenter', (e) => {
+      dragCounter++;
+      if (e.dataTransfer.types.includes('Files')) {
+        document.body.style.outline = '3px dashed var(--interactive)';
+        document.body.style.outlineOffset = '-10px';
+        document.body.style.background = 'rgba(15,98,254,0.02)';
+      }
+    });
+
+    document.body.addEventListener('dragleave', (e) => {
+      dragCounter--;
+      if (dragCounter === 0) {
+        document.body.style.outline = '';
+        document.body.style.outlineOffset = '';
+        document.body.style.background = '';
+      }
+    });
+
+    document.body.addEventListener('drop', (e) => {
+      dragCounter = 0;
+      document.body.style.outline = '';
+      document.body.style.outlineOffset = '';
+      document.body.style.background = '';
+      
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        const file = files[0];
+        if (file.name.toLowerCase().endsWith('.xml')) {
+          if (file.size > 50 * 1024 * 1024) { toast('File too large (max 50 MB)'); return; }
+          const reader = new FileReader();
+          reader.onload = (ev) => parseNmapXml(ev.target.result, file.name);
+          reader.readAsText(file);
+        } else {
+          toast('Please drop an .xml file');
+        }
+      }
+    });
+    
+    // ============================================================================
+    // FILE INPUT FROM EMPTY STATE
+    // When user clicks "Upload Scan File" button in empty state
+    // ============================================================================
+    // EMPTY STATE FILE INPUT HANDLER
+    // When user clicks "Upload Scan File" button in empty state
+    // ============================================================================
+    const fileEmptyState = document.getElementById('fileEmptyState');
+    const uploadEmptyStateBtn = document.getElementById('uploadEmptyStateBtn');
+    
+    log('ðŸ“‚ Empty state file input found:', !!fileEmptyState);
+    log('ðŸ”˜ Upload button found:', !!uploadEmptyStateBtn);
+    
+    // Button triggers file input click
+    if(uploadEmptyStateBtn && fileEmptyState){
+      uploadEmptyStateBtn.addEventListener('click', ()=>{
+        log('ðŸ–±ï¸ Upload button clicked, opening file dialog');
+        fileEmptyState.click();
+      });
+    }
+    
+    // Handle file selection
+    if(fileEmptyState){
+      fileEmptyState.addEventListener('change', (e)=>{
+        log('ðŸ“‚ File selected from empty state');
+        const f = e.target.files[0];
+        if(!f) {
+          console.warn('âš ï¸ No file selected');
+          return;
+        }
+        log('ðŸ“– Reading file:', f.name);
+        const fr = new FileReader();
+        fr.onload = ()=> {
+          log('âœ… File read complete, parsing XML');
+          parseNmapXml(fr.result, f.name);
+        };
+        fr.readAsText(f);
+      });
+    }
+
+    // ============================================================================
+    // LOAD EXAMPLE DATA HANDLER
+    // This must be defined BEFORE dock handlers try to trigger it
+    // ============================================================================
+    loadExample.addEventListener('click', ()=>{
+      log('ðŸ“¥ Load Example clicked');
+      const sample = `<?xml version="1.0"?>
+<nmaprun scanner="nmap" version="7.92" args="nmap -sV example.test" start="1640000000">
+  <host>
+    <status state="up"/>
+    <address addr="192.0.2.10" addrtype="ipv4"/>
+    <hostnames><hostname name="web1.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="80"><state state="open"/><service name="http" product="nginx" version="1.18.0"/></port>
+      <port protocol="tcp" portid="443"><state state="open"/><service name="https" product="nginx" version="1.18.0"/></port>
+      <port protocol="tcp" portid="22"><state state="open"/><service name="ssh" product="OpenSSH" version="7.9"/></port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="192.0.2.11" addrtype="ipv4"/>
+    <hostnames><hostname name="web2.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="80"><state state="open"/><service name="http" product="Apache httpd" version="2.4.41"/></port>
+      <port protocol="tcp" portid="443"><state state="open"/><service name="https" product="Apache httpd" version="2.4.41"/></port>
+      <port protocol="tcp" portid="22"><state state="open"/><service name="ssh" product="OpenSSH" version="8.0"/></port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="192.0.2.12" addrtype="ipv4"/>
+    <hostnames><hostname name="web3.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="80"><state state="open"/><service name="http" product="nginx" version="1.20.0"/></port>
+      <port protocol="tcp" portid="443"><state state="open"/><service name="https" product="nginx" version="1.20.0"/></port>
+      <port protocol="tcp" portid="22"><state state="open"/><service name="ssh" product="OpenSSH" version="8.2"/></port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="192.0.2.13" addrtype="ipv4"/>
+    <hostnames><hostname name="app1.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="8080"><state state="open"/><service name="http" product="Apache Tomcat" version="9.0"/></port>
+      <port protocol="tcp" portid="22"><state state="open"/><service name="ssh" product="OpenSSH" version="7.9"/></port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="192.0.2.14" addrtype="ipv4"/>
+    <hostnames><hostname name="app2.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="8080"><state state="open"/><service name="http" product="Apache Tomcat" version="8.5"/></port>
+      <port protocol="tcp" portid="22"><state state="open"/><service name="ssh" product="OpenSSH" version="8.1"/></port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="198.51.100.5" addrtype="ipv4"/>
+    <hostnames><hostname name="db1.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="3306"><state state="open"/><service name="mysql" product="MySQL" version="8.0.26"/></port>
+      <port protocol="tcp" portid="22"><state state="open"/><service name="ssh" product="OpenSSH" version="8.2"/></port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="198.51.100.6" addrtype="ipv4"/>
+    <hostnames><hostname name="db2.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="3306"><state state="open"/><service name="mysql" product="MySQL" version="8.0.27"/></port>
+      <port protocol="tcp" portid="22"><state state="open"/><service name="ssh" product="OpenSSH" version="8.2"/></port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="198.51.100.7" addrtype="ipv4"/>
+    <hostnames><hostname name="db3.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="5432"><state state="open"/><service name="postgresql" product="PostgreSQL" version="12.7"/></port>
+      <port protocol="tcp" portid="22"><state state="open"/><service name="ssh" product="OpenSSH" version="8.3"/></port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="198.51.100.8" addrtype="ipv4"/>
+    <hostnames><hostname name="cache1.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="6379"><state state="open"/><service name="redis" product="Redis" version="6.2.5"/></port>
+      <port protocol="tcp" portid="22"><state state="open"/><service name="ssh" product="OpenSSH" version="8.2"/></port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="203.0.113.42" addrtype="ipv4"/>
+    <hostnames><hostname name="file.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="445"><state state="open"/><service name="microsoft-ds" product="Samba" version="4.13"/></port>
+      <port protocol="tcp" portid="139"><state state="open"/><service name="netbios-ssn" product="Samba" version="4.13"/></port>
+      <port protocol="tcp" portid="22"><state state="open"/><service name="ssh" product="OpenSSH" version="8.0"/></port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="192.0.2.50" addrtype="ipv4"/>
+    <hostnames><hostname name="mail.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="25"><state state="open"/><service name="smtp" product="Postfix" version="3.5.8"/></port>
+      <port protocol="tcp" portid="143"><state state="open"/><service name="imap" product="Dovecot" version="2.3.13"/></port>
+      <port protocol="tcp" portid="22"><state state="open"/><service name="ssh" product="OpenSSH" version="8.1"/></port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="198.51.100.100" addrtype="ipv4"/>
+    <hostnames><hostname name="dns.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="53"><state state="open"/><service name="domain" product="BIND" version="9.16.15"/></port>
+      <port protocol="tcp" portid="22"><state state="open"/><service name="ssh" product="OpenSSH" version="8.4"/></port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="203.0.113.77" addrtype="ipv4"/>
+    <hostnames><hostname name="vpn.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="1194"><state state="open"/><service name="openvpn" product="OpenVPN" version="2.5.3"/></port>
+      <port protocol="tcp" portid="443"><state state="open"/><service name="https" product="nginx" version="1.20.1"/></port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="192.0.2.99" addrtype="ipv4"/>
+    <hostnames><hostname name="legacy.example.test"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="21"><state state="open"/><service name="ftp" product="vsftpd" version="3.0.3"/></port>
+      <port protocol="tcp" portid="23"><state state="open"/><service name="telnet" product="Linux telnetd"/></port>
+    </ports>
+  </host>
+</nmaprun>`;
+      parseNmapXml(sample, 'example.xml');
+    });
+
+    // ============================================================================
+    // FLOATING DOCK EVENT HANDLERS
+    // Wire up dock buttons to trigger hidden button handlers
+    // ============================================================================
+    const exportModal = document.getElementById('exportModal');
+    
+    // Dock: Load Example - triggers the hidden loadExample button
+    const dockLoadExample = document.getElementById('dockLoadExample');
+    log('ðŸŽ¯ Dock Load Example found:', !!dockLoadExample);
+    if(dockLoadExample){
+      dockLoadExample.addEventListener('click', ()=>{ 
+        log('ðŸ–±ï¸ Dock Load Example clicked, triggering loadExample');
+        loadExample.click(); 
+      });
+    }
+    
+    // Dock: Clear Data - shows confirmation modal
+    const dockClearData = document.getElementById('dockClearData');
+    if(dockClearData){
+      dockClearData.addEventListener('click', ()=>{
+        log('ðŸ–±ï¸ Dock Clear Data clicked');
+        openModalEl(document.getElementById('clearConfirmModal'), document.getElementById('cancelClearBtn'));
+      });
+    }
+    
+    // Dock: Export Data - opens export modal
+    const dockExportData = document.getElementById('dockExportData');
+    if(dockExportData){
+      dockExportData.addEventListener('click', ()=>{ 
+        log('ðŸ–±ï¸ Dock Export Data clicked, opening modal');
+        openModalEl(exportModal, document.getElementById('exportModalJson'));
+      });
+    }
+    
+    // Dock: Theme Toggle - triggers hidden themeToggle button
+    const dockThemeToggle = document.getElementById('dockThemeToggle');
+    if(dockThemeToggle){
+      dockThemeToggle.addEventListener('click', ()=>{ 
+        log('ðŸ–±ï¸ Dock Theme Toggle clicked');
+        themeToggle.click(); 
+      });
+    }
+    
+    // Dock: Keyboard Help - triggers hidden keyboardHelp button
+    const dockKeyboardHelp = document.getElementById('dockKeyboardHelp');
+    if(dockKeyboardHelp){
+      dockKeyboardHelp.addEventListener('click', ()=>{ 
+        log('ðŸ–±ï¸ Dock Keyboard Help clicked');
+        keyboardHelp.click(); 
+      });
+    }
+    
+    // ============================================================================
+    // FILE INPUT HANDLER - Load Scan from dock
+    // ============================================================================
+    const dockFileInput = document.getElementById('dockFileInput');
+    if(dockFileInput){
+      dockFileInput.addEventListener('change', (e)=>{
+        log('ðŸ“‚ File selected from dock');
+        const file = e.target.files[0];
+                 if(!file) return;
+         if(!fileOk(file)) return;
+        const reader = new FileReader();
+        reader.onload = (ev)=>{ 
+          log('ðŸ“– File read complete, parsing XML');
+          parseNmapXml(ev.target.result, file.name); 
+        };
+        reader.readAsText(file);
+        e.target.value = ''; // Reset input
+      });
+    }
+    
+    // ============================================================================
+    // EXPORT MODAL HANDLERS
+    // Handle clicks on export options within the modal
+    // ============================================================================
+    const exportModalJson = document.getElementById('exportModalJson');
+    const exportModalCsv = document.getElementById('exportModalCsv');
+    const exportModalPdf = document.getElementById('exportModalPdf');
+    
+    if(exportModalJson){
+      exportModalJson.addEventListener('click', ()=>{ 
+        log('ðŸ“¤ Export JSON from modal');
+        closeModalEl(exportModal); 
+        exportJson.click(); 
+      });
+    }
+    
+    if(exportModalCsv){
+      exportModalCsv.addEventListener('click', ()=>{ 
+        log('ðŸ“¤ Export CSV from modal');
+        closeModalEl(exportModal); 
+        exportCsv.click(); 
+      });
+    }
+    
+    if(exportModalPdf){
+      exportModalPdf.addEventListener('click', ()=>{ 
+        log('ðŸ“¤ Export PDF from modal');
+        closeModalEl(exportModal); 
+        exportPdf.click(); 
+      });
+    }
+    
+    // ============================================================================
+    // CLEAR CONFIRMATION MODAL HANDLERS
+    // Handle confirm and cancel actions for clearing data
+    // ============================================================================
+    const clearConfirmModal = document.getElementById('clearConfirmModal');
+    const confirmClearBtn = document.getElementById('confirmClearBtn');
+    const cancelClearBtn = document.getElementById('cancelClearBtn');
+    
+    if(confirmClearBtn){
+      confirmClearBtn.addEventListener('click', ()=>{
+        log('âœ… Clear data confirmed');
+        closeModalEl(clearConfirmModal);
+        reset();
+        currentFileName = '';
+        emptyState.style.display = 'flex';
+        mainContent.style.display = 'none';
+        clearData.style.display = 'none';
+        const dockClear = document.getElementById('dockClearData');
+        if(dockClear) dockClear.style.display = 'none';
+        fileInfo.classList.remove('active');
+        announce('Data cleared');
+        toast('All data cleared');
+      });
+    }
+    
+    if(cancelClearBtn){
+      cancelClearBtn.addEventListener('click', ()=>{
+        log('âŒ Clear data cancelled');
+        closeModalEl(clearConfirmModal);
+      });
+    }
+    
+    // ============================================================================
+    // SEARCH FUNCTIONALITY
+    // ============================================================================
+    searchInput.addEventListener('input', ()=> {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(()=> renderIPs(), 300);
+    });
+    
+    clearSearch.addEventListener('click', ()=> {
+      searchInput.value = '';
+      renderIPs();
+    });
+
+    // Ports table sorting
+    document.querySelectorAll('#portsTable thead th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const key = th.getAttribute('data-sort');
+        if(portsSort.key === key) portsSort.dir = portsSort.dir === 'asc' ? 'desc' : 'asc';
+        else { portsSort.key = key; portsSort.dir = 'asc'; }
+        renderPorts();
+      });
+    });
+
+    // Chart tabs
+    if(chartTabServices) chartTabServices.addEventListener('click', ()=>{ chartTab='services'; renderServices(); });
+    if(chartTabPorts) chartTabPorts.addEventListener('click', ()=>{ chartTab='ports'; renderServices(); });
+    if(chartTabVendors) chartTabVendors.addEventListener('click', ()=>{ chartTab='vendors'; renderServices(); });
+    if(chartTabProducts) chartTabProducts.addEventListener('click', ()=>{ chartTab='products'; renderServices(); });
+
+    // Inventory sort
+    if(inventorySort) inventorySort.addEventListener('change', (e)=>{ inventorySortKey = e.target.value; renderIPs(); });
+
+    // Expand / collapse all
+    function setAllHosts(expand){
+      document.querySelectorAll('#ipAccordion .accordion-item').forEach(item => {
+        const btn = item.querySelector('.accordion-button');
+        const body = item.querySelector('.accordion-body');
+        const inner = item.querySelector('.body-inner');
+        if(!btn || !body || !inner) return;
+        if(expand){
+          if(typeof item._buildBody === 'function') item._buildBody();
+          btn.setAttribute('aria-expanded','true');
+          body.style.maxHeight = inner.scrollHeight + 24 + 'px';
+        } else {
+          btn.setAttribute('aria-expanded','false');
+          body.style.maxHeight = '0';
+        }
+      });
+      syncToggleLabels();
+    }
+    function setAllPorts(expand){
+      document.querySelectorAll('#ipAccordion .accordion-item').forEach(item => {
+        item.querySelectorAll('.port-detail').forEach(d => {
+          d.style.display = expand ? '' : 'none';
+        });
+        const btn = item.querySelector('.accordion-button');
+        const body = item.querySelector('.accordion-body');
+        const inner = item.querySelector('.body-inner');
+        if(btn && body && inner && btn.getAttribute('aria-expanded') === 'true'){
+          body.style.maxHeight = inner.scrollHeight + 24 + 'px';
+        }
+      });
+      syncToggleLabels();
+    }
+    const toggleHostsBtn = document.getElementById('toggleHostsBtn');
+    const togglePortsBtn = document.getElementById('togglePortsBtn');
+
+    function allHostsExpanded(){
+      const items = document.querySelectorAll('#ipAccordion .accordion-item');
+      if(items.length === 0) return false;
+      return Array.from(items).every(it => it.querySelector('.accordion-button')?.getAttribute('aria-expanded') === 'true');
+    }
+    function allPortsExpanded(){
+      const details = document.querySelectorAll('#ipAccordion .port-detail');
+      if(details.length === 0) return false;
+      return Array.from(details).every(d => d.style.display !== 'none');
+    }
+    function updateShownCounts(){
+      document.querySelectorAll('.accordion-item').forEach(item => {
+        const el = item._shownCountEl;
+        if(!el) return;
+        const allOpen = item._allOpenPorts || [];
+        let visible;
+        if(ACTIVE_PORT_KEYS.size > 0 && !showAllPorts){
+          visible = allOpen.filter(p => ACTIVE_PORT_KEYS.has(p.portKey)).length;
+        } else {
+          visible = allOpen.length;
+        }
+        el.textContent = `${visible} shown`;
+      });
+    }
+
+    function syncToggleLabels(){
+      if(toggleHostsBtn){
+        toggleHostsBtn.textContent = allHostsExpanded() ? 'Collapse hosts' : 'Expand hosts';
+      }
+      if(togglePortsBtn){
+        togglePortsBtn.textContent = allPortsExpanded() ? 'Collapse ports' : 'Expand ports';
+      }
+    }
+    if(toggleHostsBtn){
+      toggleHostsBtn.addEventListener('click', ()=>{
+        if(allHostsExpanded()) setAllHosts(false); else setAllHosts(true);
+        syncToggleLabels();
+      });
+    }
+    if(togglePortsBtn){
+      togglePortsBtn.addEventListener('click', ()=>{
+        if(allPortsExpanded()) setAllPorts(false); else setAllPorts(true);
+        syncToggleLabels();
+      });
+    }
+    // initial labels
+    syncToggleLabels();
+
+    // expose for debugging
+    window.NMAP_ANALYZER = { parseNmapXml, getData: () => DATA, getVisibleIps: () => VISIBLE_IPS.slice() };
+
+    // finished
+  })();
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
