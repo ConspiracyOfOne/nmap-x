@@ -1,6 +1,6 @@
 # Nmap-X Nmap XML Parser and Visualizer
 
-**Single-file HTML/CSS/JS visualizer for Nmap XML scan reports.** Everything lives in `nmap-x.html` (~140 KB). No build step, no Node.js, no npm, no framework - just open it in any modern browser and start analyzing your scans.
+**Single-file HTML/CSS/JS visualizer for Nmap XML scan reports.** Everything lives in `nmap-x.html` (~160 KB). No build step, no Node.js, no npm, no framework - just open it in any modern browser and start analyzing your scans.
 
 ![Nmap-X Screenshot](img/nmap-x-light-dark.jpg)
 
