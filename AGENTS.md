@@ -25,9 +25,6 @@ Check `<title>` for `TESTS_DONE` or `TESTS_FAILED`, or read `<pre id="result">`.
 |------|---------|
 | `nmap-x.html` | Entire app (HTML + CSS + JS inline) |
 | `tests.html` | Test runner — loads `nmap-x.html` in an iframe, drives `NMAP_ANALYZER` |
-| `svg/*.svg` | Icon assets |
-| `nmap/*.xml` | Sample Nmap scan reports for testing |
-| `release/v0.1/`, `release/v1/` | Historical export builds (do not edit) |
 | `IMPLEMENTATION_CHECKLIST.md` | Task list — update when work is done |
 
 ## Port data model
