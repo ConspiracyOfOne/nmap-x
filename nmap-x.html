@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <title>Nmap-X</title>
-<link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWUY0k2dJHENziRZrtjcQHJQZAaITWnWjgxRHXDXiN6Q&s=10" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'%3E%3Cpath d='M12 2L15 8H9L12 2Z'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -582,7 +582,7 @@ html[data-theme="light"] a { color: var(--text-01); }
     }
 
   </style>
-  <script defer src="https://cloud.umami.is/script.js" data-website-id="78d168ab-1201-4551-9d40-92056d995e41"></script>
+
 </head>
 <body>
   <div class="container">
@@ -1107,8 +1107,6 @@ html[data-theme="light"] a { color: var(--text-01); }
       if(maj < rule.minMajor || (maj === rule.minMajor && min < rule.minMinor)) return rule.note;
       return null;
     }
-    const VULNERABLE_PORTS = RISK_RULES.reduce((acc,r)=>{ acc[r.port]=r.note||r.label; return acc; }, {});
-
   // Helpers
   const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const escapeHtml = s => String(s||'').replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]);
@@ -1441,10 +1439,16 @@ html[data-theme="light"] a { color: var(--text-01); }
       ACTIVE_FILTER={type:null,key:null}; 
       VISIBLE_IPS=[];
       ACTIVE_PORT_KEYS.clear();
+      portsSort={key:'count',dir:'desc'};
+      chartTab='services';
+      inventorySortKey='ip';
+      showAllPorts=false;
+      showClosedPorts=false;
       if(searchInput) searchInput.value = '';
       if(searchResults) searchResults.style.display = 'none';
       if(clearSearch) clearSearch.style.display = 'none';
       if(servicesChart){ servicesChart.destroy(); servicesChart=null; }
+      if(vendorsChart){ vendorsChart.destroy(); vendorsChart=null; }
       const portsTableBody = document.getElementById('portsTableBody');
       if(portsTableBody) portsTableBody.innerHTML=''; 
       ipAccordion.innerHTML=''; 
@@ -1831,7 +1835,7 @@ html[data-theme="light"] a { color: var(--text-01); }
         }).length;
         if(!byPort[portNum]) byPort[portNum] = {port:portNum, portKey:p.portKey, rule, sev, hosts:p.open, eolHosts};
         else {
-          byPort[portNum].hosts += 0; // already counted via p.open
+
           if(sev === 'critical') byPort[portNum].sev = 'critical';
           byPort[portNum].eolHosts += eolHosts;
         }
