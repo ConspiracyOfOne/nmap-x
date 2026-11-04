@@ -39,12 +39,13 @@
     .subtitle{color:var(--text-02);font-size:12.5px}
 
     .controls{display:flex;gap:8px;align-items:center}
-    .bx--btn{border-radius:6px;transition:background 150ms ease;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+    .bx--btn{border-radius:6px;transition:background 150ms ease;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:inherit}
     input[type=file]{display:none}
     label.file-btn{cursor:pointer;transition:background 150ms ease}
 
     /* Empty state upload button — primary action, clean/minimal */
     .btn-upload{
+      font-family:inherit;
       background:var(--interactive);
       color:#ffffff;
       border:none;
@@ -95,7 +96,7 @@
     #ipAccordion{max-height:78vh;overflow:auto}
     .accordion-item{border-bottom:1px solid var(--border);background:transparent}
     .accordion-header{background:transparent}
-    .accordion-button{background:transparent;border:none;color:var(--text-01);text-align:left;width:100%;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-radius:6px}
+    .accordion-button{font-family:inherit;background:transparent;border:none;color:var(--text-01);text-align:left;width:100%;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-radius:6px}
     .accordion-button:hover{background:var(--layer-2)}
     .accordion-button[aria-expanded="true"]{background:var(--layer-2)}
     /* Accordion body: animate height for smooth open/close */
@@ -167,7 +168,7 @@
     .chart-card{background:var(--layer-2);border:1px solid var(--border);padding:10px;margin-top:10px;}
 
     /* Buttons */
-    .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-01);padding:6px 10px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+    .btn-ghost{font-family:inherit;background:transparent;border:1px solid var(--border);color:var(--text-01);padding:6px 10px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
     .btn-ghost:hover{background:var(--layer-2)}
 
     .github-link{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;border:1px solid var(--border);background:transparent;color:var(--text-01);cursor:pointer;text-decoration:none;border-radius:6px;min-width:40px;height:36px;transition:background 150ms ease,border-color 150ms ease}
@@ -216,6 +217,7 @@
       margin-top:12px;
     }
     .dock-btn{
+      font-family:inherit;
       background:transparent;
       border:1px solid transparent;
       color:var(--text-01);
@@ -270,6 +272,7 @@
   html:not([data-theme="light"]) #clearConfirmModal .export-modal-content p{color:#ffffff}
     .export-options{display:flex;flex-direction:column;gap:8px}
     .export-option-btn{
+      font-family:inherit;
       width:100%;
       padding:12px 16px;
       background:var(--layer-2);
