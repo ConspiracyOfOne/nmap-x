@@ -9,7 +9,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'%3E%3Cpath d='M12 2L15 8H9L12 2Z'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
 
 <style>
     /* Nmap-X modern slate theme */
@@ -23,7 +23,7 @@
       --interactive-hover:#2563eb; /* blue-600 */
       --accent:#f1c21b;      /* amber-400 */
       --border:#475569;      /* slate-600 */
-      font-family: 'Fira Sans', sans-serif;
+      font-family: 'JetBrains Mono', 'Google Sans', 'Fira Sans', 'Open Sans', sans-serif;
       font-size:14px;
     }
 
@@ -190,7 +190,7 @@
 
     /* Small utilities */
     .small-muted{color:var(--text-02);font-size:13px}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace}
+    .mono{font-family: 'JetBrains Mono', 'Google Sans', 'Fira Sans', 'Open Sans', sans-serif}
 
     /* Port detail blocks — distinct background from port row, visible in both themes */
     .port-details{padding:10px 12px;font-size:12px;line-height:1.6;color:var(--text-02);background:rgba(255,255,255,0.05);border-top:1px solid rgba(255,255,255,0.08);border-radius:0 0 6px 6px;margin-top:6px}
@@ -200,7 +200,7 @@
     .port-details .detail-line:last-child{border-bottom:none}
     .port-details .detail-label{font-weight:600;color:var(--text-01)}
     .port-details .detail-script{margin-top:10px}
-    .port-details .detail-script-output{margin:4px 0 0;white-space:pre-wrap;font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;font-size:11px;color:var(--text-02);background:var(--layer);padding:6px 8px;border-left:2px solid var(--border)}
+    .port-details .detail-script-output{margin:4px 0 0;white-space:pre-wrap;font-family: 'JetBrains Mono', 'Google Sans', 'Fira Sans', 'Open Sans', sans-serif;font-size:11px;color:var(--text-02);background:var(--layer);padding:6px 8px;border-left:2px solid var(--border)}
 
     /* Action toolbar (below the banner) */
     .action-toolbar{
@@ -410,7 +410,7 @@
     .shortcuts-modal.active{display:block}
     .shortcuts-modal h3{margin:0 0 16px 0}
     .shortcut-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border)}
-    .shortcut-key{background:var(--layer-2);padding:4px 8px;border:1px solid var(--border);font-family:monospace;font-size:12px}
+    .shortcut-key{background:var(--layer-2);padding:4px 8px;border:1px solid var(--border);font-family:'JetBrains Mono', 'Google Sans', 'Fira Sans', 'Open Sans', sans-serif;font-size:12px}
 
     /* Tooltips */
     .tooltip{position:relative;cursor:help}
@@ -550,7 +550,7 @@
   border:1px solid var(--border);
   border-radius:8px;
   overflow:auto;
-  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;
+  font-family:'JetBrains Mono', 'Google Sans', 'Fira Sans', 'Open Sans', sans-serif;
   font-size:12.5px;
   line-height:1.6;
   color:var(--text-01);
