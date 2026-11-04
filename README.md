@@ -2,6 +2,7 @@
 
 **Single-file HTML/CSS/JS visualizer for Nmap XML scan reports.** Everything lives in `nmap-x.html` (~160 KB). No build step, no Node.js, no npm, no framework - just open it in any modern browser and start analyzing your scans.
 
+
 ## 🎨 Themes
 
 Nmap-X ships with two themes: dark and light. Toggle with a single click; your preference is remembered.
@@ -14,12 +15,12 @@ Nmap-X ships with two themes: dark and light. Toggle with a single click; your p
 
 ![Nmap-X Dark Theme](img/nmap-x-dark.png)
 
+
 ## 📖 Overview
 
 `nmap-x.html` is a self-contained tool for analyzing Nmap XML scan output. Drag and drop your Nmap XML report, and instantly get an interactive breakdown of your network's open ports, running services, hosts, and potential risks - all without installing anything.
 
 Designed for security professionals, network administrators, and anyone who needs to quickly understand Nmap scan results without setting up a local development environment.
-
 
 
 ## ▶️ How to Run
