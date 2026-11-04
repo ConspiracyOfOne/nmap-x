@@ -2,9 +2,17 @@
 
 **Single-file HTML/CSS/JS visualizer for Nmap XML scan reports.** Everything lives in `nmap-x.html` (~160 KB). No build step, no Node.js, no npm, no framework - just open it in any modern browser and start analyzing your scans.
 
-![Nmap-X Screenshot](img/nmap-x-light-dark.jpg)
+## 🎨 Themes
 
+Nmap-X ships with two themes: dark and light. Toggle with a single click; your preference is remembered.
 
+**Light mode:**
+
+![Nmap-X Light Theme](img/nmap-x-light.png)
+
+**Dark mode:**
+
+![Nmap-X Dark Theme](img/nmap-x-dark.png)
 
 ## 📖 Overview
 
