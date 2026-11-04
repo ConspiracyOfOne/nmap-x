@@ -115,7 +115,7 @@ Works in all modern browsers:
 - Edge
 - Safari
 
-No plugins, extensions, or internet connection required to open and parse a scan.
+No plugins or extensions required to open and parse a scan.
 
 **Internet-dependent features:** Charts (Chart.js) and PDF export (jsPDF) are loaded from public CDNs. These work only when online; in offline or air-gapped environments charts render blank and PDF export is unavailable.
 
