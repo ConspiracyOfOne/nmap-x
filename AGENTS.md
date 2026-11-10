@@ -1,7 +1,7 @@
 # AGENTS.md — Nmap XML Analyzer / Visualizer
 
 ## Overview
-Single-file HTML/CSS/JS visualizer for Nmap XML scan reports. Everything lives in `nmap-x.html` (~140 KB). No build step, no Node.js, no npm, no framework — vanilla JS/CSS in one file.
+Single-file HTML/CSS/JS visualizer for Nmap XML scan reports. Everything lives in `index.html` (~140 KB). No build step, no Node.js, no npm, no framework — vanilla JS/CSS in one file.
 
 ## How to run / test
 **Run tests:** Open `tests.html` in a browser (Chrome headless works). It auto-runs on load:
@@ -10,7 +10,7 @@ chrome.exe --headless=new --disable-gpu --allow-file-access-from-files --dump-do
 ```
 Check `<title>` for `TESTS_DONE` or `TESTS_FAILED`, or read `<pre id="result">`.
 
-**Run the app:** Open `nmap-x.html` directly in a browser — it's self-contained, no server needed.
+**Run the app:** Open `index.html` directly in a browser — it's self-contained, no server needed.
 
 ## How the app works
 - `window.NMAP_ANALYZER` is the public API:
@@ -18,13 +18,13 @@ Check `<title>` for `TESTS_DONE` or `TESTS_FAILED`, or read `<pre id="result">`.
   - `getData()` — returns parsed data (`ips`, `ports`, `services`, `hostCount`, `metrics`)
 - Port keys are protocol-agnostic: `port/protocol` (e.g. `443/tcp`, `22/tcp`)
 - Theme: `data-theme` attribute on `<html>` (`dark` or `light`). Toggle via `toggleTheme()` or the Theme button (`#dockThemeToggle` / `#themeToggle`)
-- All JS is inline in `nmap-x.html`. Only external dependency is Chart.js from CDN.
+- All JS is inline in `index.html`. Only external dependency is Chart.js from CDN.
 
 ## Key files
 | File | Purpose |
 |------|---------|
-| `nmap-x.html` | Entire app (HTML + CSS + JS inline) |
-| `tests.html` | Test runner — loads `nmap-x.html` in an iframe, drives `NMAP_ANALYZER` |
+| `index.html` | Entire app (HTML + CSS + JS inline) |
+| `tests.html` | Test runner — loads `index.html` in an iframe, drives `NMAP_ANALYZER` |
 | `IMPLEMENTATION_CHECKLIST.md` | Task list — update when work is done |
 
 ## Port data model
@@ -33,7 +33,7 @@ Check `<title>` for `TESTS_DONE` or `TESTS_FAILED`, or read `<pre id="result">`.
 - `DATA.ports[portKey]` — aggregate across hosts: `totalIps`, `openIps`, `services`, `total`, `open`, `ipList`
 
 ## Conventions / gotchas
-- **No build step:** Edit `nmap-x.html` directly. No transpile, bundle, or lint.
+- **No build step:** Edit `index.html` directly. No transpile, bundle, or lint.
 - **`parseNmapXml` is asynchronous:** Wait (~500ms) after calling before calling `getData()`.
 - **Theme state:** Stored in `data-theme` attribute on `<html>` — use `data-theme="dark"` or `data-theme="light"`.
 - **Port keys:** Always use `port/protocol` format. Do not assume protocol-agnostic port numbers.
